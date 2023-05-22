@@ -19,3 +19,12 @@ export type Message = z.TypeOf<typeof messageSchema>;
 export const messageSubSchema = z.object({
     roomId: z.string().optional()
 });
+
+export type ClientMovementType = z.TypeOf<typeof clientMovementSchema>;
+export const clientMovementSchema = z.object({
+    up: z.boolean(),
+    down: z.boolean(),
+    left: z.boolean(),
+    right: z.boolean(),
+    name: z.string().optional()    
+});

@@ -1,5 +1,5 @@
 # Zombie Assault remake
-The zombie appocalypse 2D game built on T3 stact
+The zombie appocalypse 2D game built on T3 stack
 
 # Create T3 App
 

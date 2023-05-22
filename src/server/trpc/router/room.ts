@@ -23,6 +23,7 @@ export const roomRouter = router({
             }
         })
     }),
+    
     sendMessage: publicProcedure.input(sendMessageSchema).mutation(async ({ ctx, input }) => {
         const message: Message = {
             id: randomUUID(),
