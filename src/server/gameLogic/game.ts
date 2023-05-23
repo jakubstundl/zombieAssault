@@ -18,9 +18,9 @@ export class Playground {
         }
       const player = this.players.get(input.name);
       if (player) {
-        player.input = input;
-        
-        
+        player.input = input
+        player.play(input.up, input.left, input.right, input.down);
+              
       }
     }
   }
@@ -41,7 +41,7 @@ export class Playground {
   interval: NodeJS.Timer = setInterval(() => {
     this.players.forEach((value) => {
       value.move(this.size);
-    });
+       });
     
   }, 25);
 }

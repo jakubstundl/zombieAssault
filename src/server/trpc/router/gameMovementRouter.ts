@@ -17,16 +17,15 @@ export const gameMovement = router({
         name: ctx.session?.user?.name || "Jakub",
       };
       pg.setInput(movementData);
-     console.log("----",pg.getState());
-     
+         
     }),
 
   onMovement: protectedProcedure.subscription(({ ctx, input }) => {  
     
 
-    return observable<any>((emit) => {
+    return observable<{[k: string]: {x: number;y: number}}>((emit) => {
         setInterval(() => {
-            console.log(pg.getState());
+            //console.log(pg.getState());
             
           emit.next(pg.getState());
         }, 25);

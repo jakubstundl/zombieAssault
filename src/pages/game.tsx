@@ -10,6 +10,7 @@ const Game: NextPage = () => {
     down: false,
     right: false,
   });
+  const [sub, setSub] = useState<{[k: string]: {x: number;y: number}}>({})
   const main = useRef<HTMLDivElement>(null);
 
   const [w, setW] = useState<boolean>(false);
@@ -17,6 +18,14 @@ const Game: NextPage = () => {
   const [a, setA] = useState<boolean>(false);
   const [d, setD] = useState<boolean>(false);
   const controller = trpc.gameMovement.clientMovementData.useMutation();
+
+
+  trpc.gameMovement.onMovement.useSubscription(undefined, {
+    onData(stateData) {
+        setSub(stateData)
+        
+    }
+})
 
   useEffect(() => {
     if (document.activeElement === main.current) {
@@ -152,8 +161,11 @@ const Game: NextPage = () => {
               ))}
               <div
                 className="absolute h-[1%] w-[1%] bg-black"
-                /*  style={{ top: charPosition.top, left: charPosition.left }} */
-              ></div>
+                  style={{ top: sub["jakub.stundl@seznam.cz"]?.y, left: sub["jakub.stundl@seznam.cz"]?.x }} 
+              >
+
+{/* { Object.keys(sub).map((player, index)=>(<div key={index}>{player}{sub[player]?.x}{sub[player]?.y}</div>)) }
+ */}              </div>
             </div>
           </div>
         </div>
@@ -166,6 +178,9 @@ const Game: NextPage = () => {
         </button>
         {/* <div>{`Map X:${mapPosition.left}, Y:${mapPosition.top}`}</div>
         <div>{`Char X:${charPosition.left}, Y:${charPosition.top}`}</div> */}
+        <div> 
+          {sub["jakub.stundl@seznam.cz"]?.x}{sub["jakub.stundl@seznam.cz"]?.y}
+        </div>
       </main>
     </>
   );
