@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from "react";
 import z from "zod";
 
 export const sendMessageSchema = z.object({
@@ -28,3 +29,40 @@ export const clientMovementSchema = z.object({
     right: z.boolean(),
     name: z.string().optional()    
 });
+
+export type HandleKeyMovementType =
+{
+    moveState: {
+        up: boolean;
+        left: boolean;
+        down: boolean;
+        right: boolean;
+    },
+    setMoveState: Dispatch<SetStateAction<{
+        up: boolean;
+        left: boolean;
+        down: boolean;
+        right: boolean;
+    }>>,
+    clientMoveDirection:IMoveState,
+    setClientMoveDirection:Dispatch<SetStateAction<IMoveState>>
+
+}
+
+export interface IMoveState  {    
+        up: boolean,
+        left: boolean,
+        down: boolean,
+        right: boolean,      
+}
+export const moveStateInitValues:IMoveState = {    
+        up: false,
+        left: false,
+        down: false,
+        right: false,
+      
+}
+export interface IRotationData {
+    name:string,
+    rotation: number
+}

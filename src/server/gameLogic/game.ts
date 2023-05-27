@@ -1,7 +1,16 @@
-import type { ClientMovementType } from "../../constants/schemas";
+import type {
+  ClientMovementType,
+  IRotationData,
+} from "../../constants/schemas";
 
-type state = {
+type playersState = {
   [k: string]: {
+    x: number;
+    y: number;
+  };
+};
+type bulletsState = {
+  [k: number]: {
     x: number;
     y: number;
   };
@@ -9,24 +18,39 @@ type state = {
 
 export class Playground {
   private players: Map<string, Player> = new Map<string, Player>();
+  private bullets: Map<number, Bullet> = new Map<number, Bullet>();
+  private bulletCounter = 0;
   size = { x: 10000, y: 10000 };
 
   setInput(input: ClientMovementType) {
     if (input.name) {
-        if(!this.players.has(input.name)){
-            this.players.set(input.name, new Player())
-        }
+      if (!this.players.has(input.name)) {
+        this.players.set(input.name, new Player());
+      }
       const player = this.players.get(input.name);
       if (player) {
-        player.input = input
+        player.input = input;
         player.play(input.up, input.left, input.right, input.down);
-              
       }
     }
   }
 
-  getState(): state {
-    const state: state = {};
+  fire(bulletData: IRotationData) {
+    if (this.players.has(bulletData.name)) {
+      const x0y0 = this.players.get(bulletData.name)?.coords;
+      if(x0y0){
+      const x = x0y0.x +50
+      const y = x0y0.y +50
+      const angle = bulletData.rotation;
+      this.bullets.set(this.bulletCounter, new Bullet({x,y}, angle));
+      this.bulletCounter++;
+      }
+      
+    }
+  }
+
+  getPlayersState(): playersState {
+    const state: playersState = {};
     this.players.forEach((player) => {
       if (player && player.input && player.input.name) {
         state[player.input.name] = {
@@ -37,19 +61,54 @@ export class Playground {
     });
     return state;
   }
+  getBulletsState(): bulletsState {
+    const state: bulletsState = {};
+    this.bullets.forEach((bullet, bulletCounter) => {
+      if (bullet) {
+        state[bulletCounter] = {
+          x: bullet.coords.x,
+          y: bullet.coords.y,
+        };
+      }
+    });
+    return state;
+  }
 
   interval: NodeJS.Timer = setInterval(() => {
     this.players.forEach((value) => {
       value.move(this.size);
-       });
-    
-  }, 25);
+    });
+    this.bullets.forEach((value, key) => {
+      value.move();
+      if (value.lifeSpan < 0) {
+        this.bullets.delete(key);
+      }
+    });
+  }, 20);
+}
+
+class Bullet {
+  public coords: { x: number; y: number };
+  private angle: number;
+  public lifeSpan = 50;
+  private speed = 10;
+  constructor(coords: { x: number; y: number }, angle: number) {
+    this.coords = coords;
+    this.angle = angle;
+  }
+  move() {
+    this.coords = {
+      x: this.coords.x + this.speed * Math.sin((this.angle * Math.PI) / 180),
+      y: this.coords.y + this.speed * Math.cos((this.angle * Math.PI) / 180)*-1,
+    };
+    this.lifeSpan--;
+  }
 }
 
 export class Player {
   _x = 0;
   _y = 0;
-  private _speed = 5;
+  private _speed = 3;
   input: ClientMovementType | undefined;
   private _move: { up: boolean; left: boolean; right: boolean; down: boolean } =
     { up: false, left: false, right: false, down: false };

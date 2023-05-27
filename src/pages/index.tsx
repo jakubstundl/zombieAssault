@@ -66,6 +66,8 @@ const Home: NextPage = () => {
                 <button className="w-full py-3 rounded-full bg-gradient-to-r from-sky-600 to-indigo-700 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={createPublicRoom}>Create Public Chat Room</button>
                 <button className="w-full py-3 rounded-full mt-3 bg-gradient-to-r from-sky-600 to-indigo-700 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={createPrivateRoom}>Create Private Chat Room</button>
                 <button className="w-full py-3 mt-3 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={() => setShowModal(true)}>Join Private Chat Room</button>
+                <button className="w-full py-3 mt-3 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={() =>  router.push(`/game`)}>Start Game</button>
+
               </div>
             ) : (
               <div className="mt-16 max-w-xs w-full">
