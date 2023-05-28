@@ -27,12 +27,14 @@ export const gameMovement = router({
     return observable<{
       players: { [k: string]: { x: number; y: number } };
       bullets: { [k: number]: { x: number; y: number } };
+      enemies: { [k: number]: { x: number; y: number, hp:number } };
     }>((emit) => {
       setInterval(() => {
         //console.log(pg.getState());
         emit.next({
           players: pg.getPlayersState(),
           bullets: pg.getBulletsState(),
+          enemies: pg.getEnemiesState()
         });
       }, 20);
     });

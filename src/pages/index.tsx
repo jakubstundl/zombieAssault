@@ -31,7 +31,7 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Live Chat</title>
+        <title>Zombie Assault</title>
         <meta name="description" content="Just a live chat " />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -59,13 +59,13 @@ const Home: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-900">
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
           <div className="flex flex-col items-center gap-2">
-            <div className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-500 to-blue-500">Live Chat</div>
-            <div className="text-base font-thin text-white text-center">By Isaac Fimbres</div>
+            <div className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-cyan-500 to-blue-500">Zombie Assault</div>
+            
             {session ? (
               <div className="mt-16 max-w-xs w-full">
-                <button className="w-full py-3 rounded-full bg-gradient-to-r from-sky-600 to-indigo-700 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={createPublicRoom}>Create Public Chat Room</button>
+               {/*  <button className="w-full py-3 rounded-full bg-gradient-to-r from-sky-600 to-indigo-700 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={createPublicRoom}>Create Public Chat Room</button>
                 <button className="w-full py-3 rounded-full mt-3 bg-gradient-to-r from-sky-600 to-indigo-700 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={createPrivateRoom}>Create Private Chat Room</button>
-                <button className="w-full py-3 mt-3 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={() => setShowModal(true)}>Join Private Chat Room</button>
+                <button className="w-full py-3 mt-3 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={() => setShowModal(true)}>Join Private Chat Room</button> */}
                 <button className="w-full py-3 mt-3 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={() =>  router.push(`/game`)}>Start Game</button>
 
               </div>
