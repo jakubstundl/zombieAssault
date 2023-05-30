@@ -50,6 +50,11 @@ export class Playground {
     [19, new Enemy({ x: Math.floor(Math.random()*10000), y: Math.floor(Math.random()*10000) })],
 
   ]);
+  public imgSize: Map<string, number> = new Map<string, number>([
+    ["player",Player.imgSIze()],
+    ["enemy", 100],
+    ["bullet",4]]
+    );
   
   size = { x: 10000, y: 10000 };
 
@@ -70,8 +75,8 @@ export class Playground {
     if (this.players.has(bulletData.name)) {
       const x0y0 = this.players.get(bulletData.name)?.coords;
       if (x0y0) {
-        const x = x0y0.x + 50;
-        const y = x0y0.y + 50;
+        const x = x0y0.x;
+        const y = x0y0.y;
         const angle = bulletData.rotation;
         this.bullets.set(this.bulletCounter, new Bullet({ x, y }, angle));
         this.bulletCounter++;
@@ -84,8 +89,8 @@ export class Playground {
     this.players.forEach((player) => {
       if (player && player.input && player.input.name) {
         state[player.input.name] = {
-          x: player.coords.x,
-          y: player.coords.y,
+          x: player.coords.x-(this.imgSize.get("player")||0)/2,
+          y: player.coords.y-(this.imgSize.get("player")||0)/2,
         };
       }
     });
@@ -110,8 +115,8 @@ export class Playground {
     this.enemies.forEach((enemy, enemyIndex) => {
       if (enemy) {
         state[enemyIndex] = {
-          x: enemy.coords.x,
-          y: enemy.coords.y,
+          x: enemy.coords.x-(this.imgSize.get("enemy")||0)/2,
+          y: enemy.coords.y-(this.imgSize.get("enemy")||0)/2,
           hp: enemy.hp
         };
       }
@@ -145,10 +150,14 @@ class Bullet {
   private angle: number;
   private damage = 1;
   public lifeSpan = 50;
-  private speed = 20;
+  private speed = 15;
+  
+
   constructor(coords: { x: number; y: number }, angle: number) {
     this.coords = coords;
     this.angle = angle;
+    
+    
   }
   move() {
     this.coords = {
@@ -170,7 +179,7 @@ class Bullet {
 }
 
 class Enemy {
-  colision = 20;
+  colision = 50;
   hp = 10;
   public coords: { x: number; y: number };
   constructor(coords: { x: number; y: number }) {
@@ -181,7 +190,7 @@ class Enemy {
 export class Player {
   _x = 5000;
   _y = 5000;
-  private _speed = 7;
+  private _speed = 4;
   input: ClientMovementType | undefined;
   private _move: { up: boolean; left: boolean; right: boolean; down: boolean } =
     { up: false, left: false, right: false, down: false };
@@ -194,7 +203,9 @@ export class Player {
   get coords() {
     return { x: this._x, y: this._y };
   }
-
+static imgSIze():number{
+  return 50
+}
   private _moving(size: { x: number; y: number }) {
     if (
       //up

@@ -127,8 +127,8 @@ export const mouseOverHandler = (
   setRotation: Dispatch<SetStateAction<number>>
 ) => {
   const div = e.currentTarget as HTMLDivElement;
-  const x = e.clientX - div.offsetLeft - 600;
-  const y = e.clientY - div.offsetTop - 300;
+  const x = e.clientX - div.offsetLeft - window.innerHeight/2;
+  const y = e.clientY - div.offsetTop - window.innerHeight/2;
   if (y < 0) {
     let angle = Math.atan(x / y) * (180 / Math.PI) * -1;
     if (angle < 0) {

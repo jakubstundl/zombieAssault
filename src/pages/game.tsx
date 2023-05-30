@@ -3,11 +3,14 @@ import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "../utils/trpc";
 import { handleKey, mouseOverHandler } from "../functions/gameTSX";
-import { IMoveState, moveStateInitValues } from "../constants/schemas";
+import type { IMoveState } from "../constants/schemas";
+import { moveStateInitValues } from "../constants/schemas";
 import React from "react";
 
 const Game: NextPage = () => {
   const clientName = trpc.auth.getClientName.useQuery();
+  const imgSize = trpc.gameMovement.getImgSize.useQuery();
+
   //Client movement, data sent to backend
   const [moveState, setMoveState] = useState<IMoveState>(moveStateInitValues);
   const [clientMoveDirection, setClientMoveDirection] =
@@ -21,7 +24,6 @@ const Game: NextPage = () => {
     clientMoveDirection,
     setClientMoveDirection,
   };
-  const [animation, setAnimation] = useState(false);
   const [debug, setDebug] = useState<string>("Debug");
 
   const [rotationState, setRotationState] = useState<number>(0);
@@ -82,17 +84,20 @@ const Game: NextPage = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     handleKey(e, true, handleKeyParams);
-    setAnimation(true);
+    //  setAnimation(true);
   };
   const handleKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
     handleKey(e, false, handleKeyParams);
-    setAnimation(false);
+    // setAnimation(false);
   };
   const handleMouseOver = (e: React.MouseEvent<HTMLInputElement>) => {
     mouseOverHandler(e, setRotationState);
   };
   const fire = () => {
-    bulletController.mutate(rotationState);
+    bulletController.mutate(
+      rotationState + (Math.random() < 0.5 ? 1 : -1) * Math.random() * 10
+    );
+    console.warn();
   };
 
   return (
@@ -109,19 +114,24 @@ const Game: NextPage = () => {
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
       >
-        <div className="flex w-full justify-center">
+        <div className="flex w-full justify-center relative">
           <div
             onMouseMove={handleMouseOver}
-            className="relative  h-[600px] w-[1200px] overflow-hidden border-8 border-black bg-white"
+            className="relative  box-border aspect-square h-screen overflow-hidden bg-black"
           >
-            {allPlayersPositions && clientName.data ? (
+            {allPlayersPositions && clientName.data && imgSize.data ? (
               <div
                 ref={map}
                 className="duration-10 absolute flex h-[10000px] w-[10000px]"
                 onClick={fire}
                 style={{
-                  top: -(allPlayersPositions[clientName.data]?.y || 0) + 250,
-                  left: -(allPlayersPositions[clientName.data]?.x || 0) + 550,
+                  top:
+                    -(allPlayersPositions[clientName.data]?.y || 0) +
+                    window.innerHeight / 2 - (imgSize.data.get("player")||0)/2,
+                    
+                  left:
+                    -(allPlayersPositions[clientName.data]?.x || 0) +
+                    window.innerHeight / 2  - (imgSize.data.get("player")||0)/2
                 }}
               >
                 <div className="flex h-full w-full flex-wrap bg-[url('/f.jpg')]">
@@ -132,10 +142,12 @@ const Game: NextPage = () => {
                       return (
                         <div
                           key={index}
-                          className="absolute h-[100px] w-[100px] bg-[url('/jinx.png')] bg-cover bg-center bg-no-repeat"
+                          className="absolute bg-[url('/jinx.png')] bg-cover bg-center bg-no-repeat"
                           // className="absolute h-[100px] w-[100px] bg-no-repeat bg-center"
 
                           style={{
+                            height: imgSize.data?.get("player") || 0,
+                            width: imgSize.data?.get("player") || 0,
                             top: allPlayersPositions[player]?.y,
                             left: allPlayersPositions[player]?.x,
                             transform: `rotate(${allPlayersRotations[player]}deg)`,
@@ -150,8 +162,10 @@ const Game: NextPage = () => {
                       return (
                         <div
                           key={index}
-                          className="absolute h-[5px] w-[5px] bg-white"
+                          className="absolute bg-[url('/bullet.jpg')] bg-cover bg-center bg-no-repeat"
                           style={{
+                            height: imgSize.data?.get("bullet") || 0,
+                            width: imgSize.data?.get("bullet") || 0,
                             top: allBulletsPositions[bullet]?.y,
                             left: allBulletsPositions[bullet]?.x,
                           }}
@@ -163,9 +177,12 @@ const Game: NextPage = () => {
                     Object.keys(allEnemiesPositions).map((enemy, index) => {
                       return (
                         <div
+                       
                           key={index}
-                          className="absolute h-[50px] w-[50px] bg-red-500"
+                          className="absolute select-none pointer-events-none bg-red-500 "
                           style={{
+                            height: imgSize.data?.get("enemy") || 0,
+                            width: imgSize.data?.get("enemy") || 0,
                             top: allEnemiesPositions[enemy]?.y,
                             left: allEnemiesPositions[enemy]?.x,
                           }}
@@ -180,10 +197,9 @@ const Game: NextPage = () => {
               <></>
             )}
           </div>
-        </div>
-
-        <div className="flex w-full justify-around text-white">
-          <div className="">
+          {/*Display data */}
+          <div className="absolute left-0 top-0 text-white">
+          
             Total bullets on the map: {debug} <br></br>
             Me: {clientName.data}
             <br></br>
@@ -218,7 +234,10 @@ const Game: NextPage = () => {
                     </p>
                   );
                 })}
-</div><div>
+                 
+        </div>
+            {/*Minimap*/}
+        <div className="absolute right-[10px] bottom-[100px]">
             <div className="relative h-[200px] w-[200px] border bg-black">
               {allPlayersPositions &&
                 Object.keys(allPlayersPositions).map((player, index) => {
@@ -247,8 +266,13 @@ const Game: NextPage = () => {
                   );
                 })}
             </div>
-          </div>
+            </div>
         </div>
+      
+        
+
+      
+        
       </main>
     </>
   );

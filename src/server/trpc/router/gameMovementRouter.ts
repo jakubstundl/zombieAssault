@@ -13,6 +13,11 @@ import { number, z } from "zod";
 const pg = new Playground();
 
 export const gameMovement = router({
+  getImgSize: protectedProcedure.query(() => {
+    return pg.imgSize;
+  }),
+
+
   clientMovementData: protectedProcedure
     .input(clientMovementSchema)
     .mutation(async ({ ctx, input }) => {
