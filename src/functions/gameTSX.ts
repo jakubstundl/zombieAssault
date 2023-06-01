@@ -1,10 +1,11 @@
-import { Dispatch, SetStateAction } from "react";
-import { HandleKeyMovementType } from "../constants/schemas";
+import type { Dispatch, SetStateAction } from "react";
+import type { HandleKeyMovement } from "../constants/schemas";
+import { AutoShooting } from "../server/gameLogic/AutoShootingClass";
 
 export const handleKey = (
   e: React.KeyboardEvent<HTMLElement>,
   action: boolean,
-  params: HandleKeyMovementType
+  params: HandleKeyMovement
 ) => {
   if (e.repeat) {
     return;
@@ -116,6 +117,11 @@ export const handleKey = (
           }
         }
         break;
+        case "q":
+          if(action){
+            params.setAutoShootingEnabled(!params.autoShootingEnabled)
+          }
+          break;
       default:
         break;
     }
@@ -127,7 +133,7 @@ export const mouseOverHandler = (
   setRotation: Dispatch<SetStateAction<number>>
 ) => {
   const div = e.currentTarget as HTMLDivElement;
-  const x = e.clientX - div.offsetLeft - window.innerHeight/2;
+  const x = e.clientX - div.offsetLeft - window.innerWidth/2;
   const y = e.clientY - div.offsetTop - window.innerHeight/2;
   if (y < 0) {
     let angle = Math.atan(x / y) * (180 / Math.PI) * -1;

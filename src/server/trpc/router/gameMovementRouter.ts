@@ -1,53 +1,52 @@
-import { randomUUID } from "crypto";
 import { Events } from "../../../constants/events";
 import type {
-  ClientMovementType,
-  IRotationData,
+  ClientMovement,
+  RotationData,
+  MoveAllObservable,
 } from "../../../constants/schemas";
 import { clientMovementSchema } from "../../../constants/schemas";
 import { observable } from "@trpc/server/observable";
 import { router, publicProcedure, protectedProcedure } from "../trpc";
-import { Playground } from "../../gameLogic/game";
-import { number, z } from "zod";
+import { Playground } from "../../gameLogic/PlaygroundClass";
+import { z } from "zod";
+import { AutoShooting } from "../../gameLogic/AutoShootingClass";
 
-const pg = new Playground();
+
+
+export const pg = new Playground();
+const autoShooterControllers = new Map<string, AutoShooting>()
 
 export const gameMovement = router({
-  getImgSize: protectedProcedure.query(() => {
-    return pg.imgSize;
+  getPlaygroundData: protectedProcedure.query(() => {
+    return { imgSize: pg.imgSize, mapSize: pg.size };
   }),
-
 
   clientMovementData: protectedProcedure
     .input(clientMovementSchema)
     .mutation(async ({ ctx, input }) => {
-      const movementData: ClientMovementType = {
+      const movementData: ClientMovement = {
         ...input,
         name: ctx.session?.user?.name || "none",
       };
+
       pg.setInput(movementData);
     }),
 
   moveAll: protectedProcedure.subscription(({ ctx, input }) => {
-    return observable<{
-      players: { [k: string]: { x: number; y: number } };
-      bullets: { [k: number]: { x: number; y: number } };
-      enemies: { [k: number]: { x: number; y: number, hp:number } };
-    }>((emit) => {
+    return observable<MoveAllObservable>((emit) => {
       setInterval(() => {
-        //console.log(pg.getState());
         emit.next({
           players: pg.getPlayersState(),
           bullets: pg.getBulletsState(),
-          enemies: pg.getEnemiesState()
+          enemies: pg.getEnemiesState(),
         });
       }, 20);
     });
   }),
 
   rotateAll: protectedProcedure.subscription(({ ctx }) => {
-    return observable<IRotationData>((emit) => {
-      function onClientRotation(data: IRotationData) {
+    return observable<RotationData>((emit) => {
+      function onClientRotation(data: RotationData) {
         emit.next(data);
       }
 
@@ -63,23 +62,40 @@ export const gameMovement = router({
     .input(z.number())
     .mutation(async ({ ctx, input }) => {
       if (ctx.session?.user?.name && input) {
-        const rotation: IRotationData = {
+        const rotation: RotationData = {
           name: ctx.session?.user?.name,
           rotation: input,
         };
+        if( autoShooterControllers.has(ctx.session.user.name) ){
+          (autoShooterControllers.get(ctx.session.user.name) as AutoShooting).angle = input
+        }else{
+          autoShooterControllers.set(ctx.session.user.name, new AutoShooting());
+          (autoShooterControllers.get(ctx.session.user.name) as AutoShooting).angle = input
+        }
         ctx.ee.emit(Events.SEND_ROTATION, rotation);
       }
     }),
 
-  clientFire: publicProcedure
+  clientFire: protectedProcedure
     .input(z.number())
     .mutation(async ({ ctx, input }) => {
       if (ctx.session?.user?.name && input) {
-        const rotation: IRotationData = {
+        const rotation: RotationData = {
           name: ctx.session?.user?.name,
           rotation: input,
         };
         pg.fire(rotation);
       }
+    }),
+    autoFireToggle: protectedProcedure
+    .input(z.boolean())
+    .mutation(async ({ ctx, input }) => {
+      input?console.log("q pressed"):console.log("q unpressed");
+      
+      if(ctx.session?.user?.name){
+        input?autoShooterControllers.get(ctx.session?.user?.name)?.fireOn(ctx.session?.user?.name):autoShooterControllers.get(ctx.session?.user?.name)?.fireOff()
+
+      }
+      
     }),
 });
