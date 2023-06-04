@@ -1,3 +1,4 @@
+import { allowedArea, allowedAreaForBullets } from "../../constants/gameConstants";
 import type { Coords } from "../../constants/schemas";
 import type { Enemy } from "./EnemyClass";
 
@@ -5,7 +6,7 @@ import type { Enemy } from "./EnemyClass";
 export class Bullet {
     private _coords: Coords;
     private angle: number;
-    private damage = 1;
+    private damage = 6;
     public lifeSpan = 50;
     private speed = 15;
   
@@ -24,6 +25,9 @@ export class Bullet {
           this.speed * Math.cos((this.angle * Math.PI) / 180) * -1,
       };
       this.lifeSpan--;
+      if(!allowedAreaForBullets(this._coords.x,this._coords.y)){
+        this.lifeSpan = -1
+      }
     }
     hit(enemy: Enemy): boolean {
       if (

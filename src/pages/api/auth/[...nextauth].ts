@@ -24,14 +24,14 @@ export const authOptions: NextAuthOptions = {
           type: "text",
           placeholder: "Enter your username"
         },
-        password: {
+       /*  password: {
           label: "Password",
           type: "password",
           placeholder: "Enter your password"
-        }
+        } */
       },
       async authorize(credentials, _) {
-        const user = { id: nanoId(), name: credentials?.name, password: credentials?.password }
+        const user = { id: nanoId(), name: credentials?.name, password: /* credentials?.password */  "" }
   
         if (user) {
           return user

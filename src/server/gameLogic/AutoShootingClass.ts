@@ -11,10 +11,18 @@ export class AutoShooting {
   fireOn(name: string) {
     this.interval = setInterval(() => {
       const rotationData: RotationData = { name, rotation: this._angle };
-      pg.fire(rotationData);
+      pg?.fire(rotationData);
+     
     }, 100);
   }
   fireOff() {
     clearInterval(this.interval);
+  }
+
+  holyHailGrenade(name: string){
+    for(let i = 0; i < 360; i++){
+      const rotationData: RotationData = { name, rotation: i };
+      pg?.fire(rotationData)
+     }
   }
 }

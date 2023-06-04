@@ -122,6 +122,24 @@ export const handleKey = (
             params.setAutoShootingEnabled(!params.autoShootingEnabled)
           }
           break;
+          case "p":
+          if(action){
+            params.pause()
+          }
+          break;
+          case "r":
+            if(action){
+              params.restart()
+            }
+            break;
+
+            case "e":
+            if(action){
+              params.holyHail()
+            }
+            break;
+
+
       default:
         break;
     }

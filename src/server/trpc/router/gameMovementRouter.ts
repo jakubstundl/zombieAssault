@@ -13,12 +13,14 @@ import { AutoShooting } from "../../gameLogic/AutoShootingClass";
 
 
 
-export const pg = new Playground();
+export const pg:Playground|null = new Playground();
 const autoShooterControllers = new Map<string, AutoShooting>()
 
 export const gameMovement = router({
+
   getPlaygroundData: protectedProcedure.query(() => {
-    return { imgSize: pg.imgSize, mapSize: pg.size };
+    
+    return { imgSize: pg?.imgSize, mapSize: pg?.size };
   }),
 
   clientMovementData: protectedProcedure
@@ -29,17 +31,21 @@ export const gameMovement = router({
         name: ctx.session?.user?.name || "none",
       };
 
-      pg.setInput(movementData);
+      pg?.setInput(movementData);
     }),
 
-  moveAll: protectedProcedure.subscription(({ ctx, input }) => {
+      moveAll: protectedProcedure.subscription(({ ctx, input }) => {
     return observable<MoveAllObservable>((emit) => {
       setInterval(() => {
         emit.next({
-          players: pg.getPlayersState(),
-          bullets: pg.getBulletsState(),
-          enemies: pg.getEnemiesState(),
+          players: pg?.getPlayersState(),
+          bullets: pg?.getBulletsState(),
+          enemies: pg?.getEnemiesState(),
+          pause: pg.isPaused,
+          enemiesToKill: pg.enemiesToKill
         });
+        console.log(pg.isPaused);
+        
       }, 20);
     });
   }),
@@ -84,7 +90,7 @@ export const gameMovement = router({
           name: ctx.session?.user?.name,
           rotation: input,
         };
-        pg.fire(rotation);
+        pg?.fire(rotation);
       }
     }),
     autoFireToggle: protectedProcedure
@@ -97,5 +103,22 @@ export const gameMovement = router({
 
       }
       
+    }),
+
+    pauseTheGame: protectedProcedure
+    .mutation(async () => {
+      pg?.pause();
+    }),
+    restartTheGame: protectedProcedure
+    .mutation(async () => {
+     // pg= null;
+     // pg = new Playground();
+    }),
+    holyHailGrenade: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      if(ctx.session?.user?.name){
+        autoShooterControllers.get(ctx.session?.user?.name)?.holyHailGrenade(ctx.session?.user?.name)
+
+      }
     }),
 });

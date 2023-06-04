@@ -1,7 +1,10 @@
 import {
+  enemyRandomSpawnCoords,
   imgSize,
   playgroundSize,
   playgroundTiles,
+numberOfEnemiesAtTheTime,
+  numberOfTotal,
 } from "../../constants/gameConstants";
 import type {
   ClientMovement,
@@ -20,54 +23,33 @@ export class Playground {
   private _players: Map<string, Player> = new Map<string, Player>();
   private _bullets: Map<number, Bullet> = new Map<number, Bullet>();
   private _bulletCounter = 0;
+  private _enemyCounter = 0;
+  private _enemySpawnAtTheTime = numberOfEnemiesAtTheTime;
+  private _enemyTotalNumber = numberOfTotal;
   private _enemies: Map<number, Enemy> = new Map<number, Enemy>();
+  private _pause = true;
   constructor() {
-    for (let i = 0; i < 1; i++) {
-      this._enemies.set(
-        i,
-        new Enemy({
-          x: Math.floor(Math.random() * this._size.x - 1),
-          y: Math.floor(0),
-        })
-      );
-    }
-   /*  for (let i = 20; i < 40; i++) {
-      this._enemies.set(
-        i,
-        new Enemy({
-          x: Math.floor(0),
-          y: Math.floor(Math.random() * this._size.y - 1),
-        })
-      );
-    }
-    for (let i = 40; i < 60; i++) {
-      this._enemies.set(
-        i,
-        new Enemy({
-          x: Math.floor(Math.random() * this._size.x - 1),
-          y: Math.floor(this._size.y - 1),
-        })
-      );
-    }
-    for (let i = 60; i < 80; i++) {
-      this._enemies.set(
-        i,
-        new Enemy({
-          x: Math.floor(this._size.x - 1),
-          y: Math.floor(Math.random() * this._size.y - 1),
-        })
-      );
-    }*/
-  } 
-  get players(){
-    return this._players
+    console.log("Playground has been initialized");
+    console.log(playgroundTiles);
+  }
+  get players() {
+    return this._players;
   }
   get imgSize(): Map<string, number> {
     return imgSize;
   }
+  pause(): void {
+    this._pause = !this._pause;
+  }
+  get isPaused(){
+    return this._pause
+  }
 
   get size() {
     return this._size;
+  }
+  get enemiesToKill(){
+    return `${this._enemyTotalNumber}`
   }
 
   setInput(input: ClientMovement) {
@@ -80,7 +62,7 @@ export class Playground {
   }
 
   fire(bulletData: RotationData) {
-    if (this._players.has(bulletData.name)) {
+    if (!this.isPaused && this._players.has(bulletData.name)) {
       const x0y0 = this._players.get(bulletData.name)?.coords;
       if (x0y0) {
         const angle = bulletData.rotation;
@@ -91,7 +73,7 @@ export class Playground {
         this._bulletCounter++;
       }
     }
-    console.log(this._bulletCounter);
+   // console.log(this._bulletCounter);
   }
 
   getPlayersState(): PlayersState {
@@ -101,7 +83,8 @@ export class Playground {
         state[name] = {
           x: player.coords.x - (this.imgSize.get("player") || 0) / 2,
           y: player.coords.y - (this.imgSize.get("player") || 0) / 2,
-        };
+          hp: player.hp,
+          };
       }
     });
     return state;
@@ -125,6 +108,7 @@ export class Playground {
           x: enemy.coords.x - (this.imgSize.get("enemy") || 0) / 2,
           y: enemy.coords.y - (this.imgSize.get("enemy") || 0) / 2,
           hp: enemy.hp,
+          rotation: enemy.rotation,
         };
       }
     });
@@ -132,26 +116,43 @@ export class Playground {
   }
 
   interval: NodeJS.Timer = setInterval(() => {
-    this._players.forEach((player) => {
-      player.move(this.size);
-    });
-    this._enemies.forEach((enemy) => {
-      enemy.move();
-    });
-    this._bullets.forEach((bullet, bulletIndex) => {
-      bullet.move();
-      if (bullet.lifeSpan < 0) {
-        this._bullets.delete(bulletIndex);
-      }
-      this._enemies.forEach((enemy, enemyIndex) => {
-        if (bullet.hit(enemy)) {
-          this._bullets.delete(bulletIndex);
-        }
-        if (enemy.hp < 0) {
-          this._enemies.delete(enemyIndex);
+    if (this._players.size > 0 && !this._pause) {
+      this._players.forEach((player, name) => {
+        player.move(this.size);
+        if (player.hp <= 0) {
+          this._players.delete(name);
         }
       });
-    });
+      this._enemies.forEach((enemy) => {
+        enemy.move();
+      });
+      this._bullets.forEach((bullet, bulletIndex) => {
+        bullet.move();
+        if (bullet.lifeSpan < 0) {
+          this._bullets.delete(bulletIndex);
+        }
+        this._enemies.forEach((enemy, enemyIndex) => {
+          if (bullet.hit(enemy)) {
+            this._bullets.delete(bulletIndex);
+          }
+          if (enemy.hp < 0) {
+            this._enemies.get(enemyIndex)?.clearInterval();
+            this._enemies.delete(enemyIndex);
+          }
+        });
+      });
+      if (
+        this._enemies.size < this._enemySpawnAtTheTime &&
+        this._enemyTotalNumber > 0
+      ) {
+        this._enemies.set(
+          this._enemyCounter,
+          new Enemy(enemyRandomSpawnCoords())
+        );
+        this._enemyCounter++;
+        this._enemyTotalNumber--;
+      }
+    }
   }, 20);
 
   get tilesCenters() {

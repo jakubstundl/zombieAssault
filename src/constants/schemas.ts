@@ -38,6 +38,9 @@ export type HandleKeyMovement = {
   setClientMoveDirection: Dispatch<SetStateAction<MoveState>>;
   setAutoShootingEnabled: Dispatch<SetStateAction<boolean>>;
   autoShootingEnabled:boolean
+  pause:()=>void
+  restart:()=>void
+  holyHail:()=>void
   };
 
 export type MoveState = {
@@ -61,6 +64,7 @@ export type PlayersState = {
   [k: string]: {
     x: number;
     y: number;
+    hp:number
   };
 };
 export type Coords = { x: number; y: number };
@@ -75,12 +79,15 @@ export type EnemiesState = {
     x: number;
     y: number;
     hp: number;
+    rotation:number;
   };
 };
 
 export type MoveAllObservable = {
-  players:PlayersState;
-  bullets:BulletsState;
-  enemies:EnemiesState;
+  players:PlayersState|undefined;
+  bullets:BulletsState|undefined;
+  enemies:EnemiesState|undefined;
+  pause:boolean|undefined;
+  enemiesToKill:string|undefined;
 };
 
