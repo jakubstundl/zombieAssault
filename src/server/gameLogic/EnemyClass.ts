@@ -4,17 +4,17 @@ import {
   playgroundSize,
   playgroundTiles,
   grid,
-  coordsDistance,
   distanceToDoDmg,
   distanceToMove,
   distanceToIgnorePathfinder,
 } from "../../constants/gameConstants";
 import { pg } from "../trpc/router/gameMovementRouter";
+import { coordsDistance } from "../../constants/functions";
 
 export class Enemy {
   colision = 50;
   hp = 10;
-  private _speed = 4;
+  private _speed = 14;
   private _dmg = 10;
   private _angle = 0;
   private _distanceFromTheTarget = playgroundSize.x + playgroundSize.y;
@@ -53,13 +53,11 @@ export class Enemy {
     this._tileCounter = 0;
     const easystar = new easystarjs.js();
     easystar.setGrid(grid);
-    easystar.setAcceptableTiles([0,2]);
-    const tx0 = Math.floor(
-      this.coords.x / (playgroundSize.x / playgroundTiles.x)
-    );
-    const ty0 = Math.floor(
-      this.coords.y / (playgroundSize.y / playgroundTiles.y)
-    );
+    easystar.setAcceptableTiles([0, 2]);
+    const tx0 = Math.max(Math.floor(this.coords.x / (playgroundSize.x / playgroundTiles.x)),0);
+    const ty0 = Math.max(Math.floor(this.coords.y / (playgroundSize.y / playgroundTiles.y)),0);
+    console.log("Tiles", tx0, ty0);
+    
     easystar.findPath(
       tx0,
       ty0,
@@ -107,7 +105,6 @@ export class Enemy {
       this.tile.x == xT &&
       this.tile.y == yT &&
       this._distanceFromTheTarget > distanceToIgnorePathfinder;
-   
 
     if (condition) {
       this._tileCounter++;
@@ -125,7 +122,7 @@ export class Enemy {
           this._angle = Math.atan(xDiff / yDfiff) + Math.PI;
         } else {
           this._angle = Math.atan(xDiff / yDfiff);
-        }    
+        }
 
         if (this._targetPoints[this._tileCounter]) {
           this._coords.x += Math.sin(this._angle) * this._speed;
@@ -133,7 +130,6 @@ export class Enemy {
         }
       }
     }
-  
   }
 
   interval: NodeJS.Timer = setInterval(() => {
@@ -153,7 +149,8 @@ export class Enemy {
       if (this._distanceFromTheTarget < 250) {
         this._tileCounter = 0;
         this._targetPoints = [];
-        this._targetPoints[0] = pg?.players.get(playerToChase)?.coords as Coords;
+        this._targetPoints[0] = pg?.players.get(playerToChase)
+          ?.coords as Coords;
         if (this._distanceFromTheTarget < distanceToDoDmg) {
           pg?.players.get(playerToChase)?.takeDmg(this._dmg);
         }

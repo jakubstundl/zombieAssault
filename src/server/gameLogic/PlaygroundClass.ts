@@ -1,5 +1,5 @@
 import {
-  enemyRandomSpawnCoords,
+ 
   imgSize,
   playgroundSize,
   playgroundTiles,
@@ -17,6 +17,7 @@ import type {
 import { Player } from "./PlayerClass";
 import { Bullet } from "./BulletClass";
 import { Enemy } from "./EnemyClass";
+import { enemyRandomSpawnCoords } from "../../constants/functions";
 
 export class Playground {
   private _size = playgroundSize;
@@ -132,9 +133,8 @@ export class Playground {
           this._bullets.delete(bulletIndex);
         }
         this._enemies.forEach((enemy, enemyIndex) => {
-          if (bullet.hit(enemy)) {
-            this._bullets.delete(bulletIndex);
-          }
+         bullet.hit(enemy)
+           
           if (enemy.hp < 0) {
             this._enemies.get(enemyIndex)?.clearInterval();
             this._enemies.delete(enemyIndex);

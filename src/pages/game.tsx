@@ -11,7 +11,7 @@ import type {
 } from "../constants/schemas";
 import { moveStateInitValues } from "../constants/schemas";
 import React from "react";
-import { bulletImgURL } from "../constants/gameConstants";
+import { bulletImgURL, enemyImgURL } from "../constants/gameConstants";
 
 const Game: NextPage = () => {
   const clientName = trpc.auth.getClientName.useQuery();
@@ -245,7 +245,7 @@ const Game: NextPage = () => {
                           key={index}
                           className="pointer-events-none absolute select-none bg-cover bg-center bg-no-repeat"
                           style={{
-                            backgroundImage: "url('/basicZombie.gif')",
+                            backgroundImage: enemyImgURL,
                             height:
                               playgroundData.data?.imgSize?.get("enemy") || 0,
                             width:

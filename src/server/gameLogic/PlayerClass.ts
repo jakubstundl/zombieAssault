@@ -1,12 +1,11 @@
 import type { Coords, MoveState } from "../../constants/schemas";
 import { moveStateInitValues } from "../../constants/schemas";
 import {
-  allowedArea,
-  imgSize,
   playerSpawnPosition,
   playgroundSize,
   playgroundTiles,
 } from "../../constants/gameConstants";
+import { allowedAreaForPlayers } from "../../constants/functions";
 
 export class Player {
   private _x = playerSpawnPosition.x;
@@ -14,7 +13,7 @@ export class Player {
   private _hp = 1000;
   private _speedInit = 5
   private _speed = this._speedInit;
-  private imgSize0 = 50;
+  
 
   private _move: MoveState = moveStateInitValues;
 
@@ -43,10 +42,7 @@ export class Player {
     );
     return { x: tx0, y: ty0 };
   }
-  static imgSize(): number {
-    return 100;
-  }
-
+  
   private _moving(size: Coords) {
     const origPosition: Coords = { x: this._x, y: this._y };
 
@@ -58,7 +54,7 @@ export class Player {
       !this._move.down
     ) {
       this._y = this._y - this._speed;
-      if (!allowedArea(this._x, this._y)) {
+      if (!allowedAreaForPlayers(this._x, this._y)) {
         this._y = origPosition.y;
       }
     } else {
@@ -70,7 +66,7 @@ export class Player {
         !this._move.down
       ) {
         this._x = this._x - this._speed;
-        if (!allowedArea(this._x, this._y)) {
+        if (!allowedAreaForPlayers(this._x, this._y)) {
           this._x = origPosition.x;
         }
       } else {
@@ -82,7 +78,7 @@ export class Player {
           !this._move.down
         ) {
           this._x = this._x + this._speed;
-          if (!allowedArea(this._x, this._y)) {
+          if (!allowedAreaForPlayers(this._x, this._y)) {
             this._x = origPosition.x;
           }
         } else {
@@ -94,7 +90,7 @@ export class Player {
             this._move.down
           ) {
             this._y = this._y + this._speed;
-            if (!allowedArea(this._x, this._y)) {
+            if (!allowedAreaForPlayers(this._x, this._y)) {
               this._y = origPosition.y;
             }
           } else {
@@ -107,14 +103,14 @@ export class Player {
             ) {
               this._x = this._x - this._speed / Math.SQRT2;
               if (
-                !allowedArea(this._x, this._y)
+                !allowedAreaForPlayers(this._x, this._y)
               ) {
                 this._x = origPosition.x;
                
               }
               this._y = this._y - this._speed / Math.SQRT2;
               if (
-                !allowedArea(this._x, this._y)
+                !allowedAreaForPlayers(this._x, this._y)
               ) {
                 this._y = origPosition.y;
                 
@@ -129,14 +125,14 @@ export class Player {
               ) {
                 this._x = this._x + this._speed / Math.SQRT2;
                 if (
-                  !allowedArea(this._x, this._y)
+                  !allowedAreaForPlayers(this._x, this._y)
                 ) {
                   this._x = origPosition.x;
                  
                 }
                 this._y = this._y - this._speed / Math.SQRT2;
                 if (
-                  !allowedArea(this._x, this._y)
+                  !allowedAreaForPlayers(this._x, this._y)
                 ) {
                   this._y = origPosition.y;
                  
@@ -151,7 +147,7 @@ export class Player {
                 ) {
                   this._x = this._x - this._speed / Math.SQRT2;
                   if (
-                    !allowedArea(
+                    !allowedAreaForPlayers(
                       this._x,
                       this._y
                     )
@@ -161,7 +157,7 @@ export class Player {
                   }
                   this._y = this._y + this._speed / Math.SQRT2;
                   if (
-                    !allowedArea(
+                    !allowedAreaForPlayers(
                       this._x,
                       this._y
                     )
@@ -179,7 +175,7 @@ export class Player {
                   ) {
                     this._x = this._x + this._speed / Math.SQRT2;
                     if (
-                      !allowedArea(
+                      !allowedAreaForPlayers(
                         this._x,
                         this._y
                       )
@@ -189,7 +185,7 @@ export class Player {
                     }
                     this._y = this._y + this._speed / Math.SQRT2;
                     if (
-                      !allowedArea(
+                      !allowedAreaForPlayers(
                         this._x,
                         this._y
                       )
