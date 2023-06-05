@@ -1,25 +1,22 @@
 import { Events } from "../../../constants/events";
 import type {
   ClientMovement,
-  RotationData,
   MoveAllObservable,
+  BulletData,
+  RotationData,
 } from "../../../constants/schemas";
 import { clientMovementSchema } from "../../../constants/schemas";
 import { observable } from "@trpc/server/observable";
 import { router, publicProcedure, protectedProcedure } from "../trpc";
 import { Playground } from "../../gameLogic/PlaygroundClass";
 import { z } from "zod";
-import { AutoShooting } from "../../gameLogic/AutoShootingClass";
+import { BulletController } from "../../gameLogic/BulletControllerClass";
 
-
-
-export const pg:Playground|null = new Playground();
-const autoShooterControllers = new Map<string, AutoShooting>()
+export const pg: Playground | null = new Playground();
+const bulletController = new Map<string, BulletController>();
 
 export const gameMovement = router({
-
   getPlaygroundData: protectedProcedure.query(() => {
-    
     return { imgSize: pg?.imgSize, mapSize: pg?.size };
   }),
 
@@ -34,18 +31,18 @@ export const gameMovement = router({
       pg?.setInput(movementData);
     }),
 
-      moveAll: protectedProcedure.subscription(({ ctx, input }) => {
+  moveAll: protectedProcedure.subscription(() => {
     return observable<MoveAllObservable>((emit) => {
       setInterval(() => {
         emit.next({
           players: pg?.getPlayersState(),
           bullets: pg?.getBulletsState(),
           enemies: pg?.getEnemiesState(),
+          turrets: pg?.getTurretsState(),
           pause: pg.isPaused,
-          enemiesToKill: pg.enemiesToKill
+          enemiesToKill: pg.enemiesToKill,
         });
-        console.log(pg.isPaused);
-        
+      
       }, 20);
     });
   }),
@@ -72,11 +69,15 @@ export const gameMovement = router({
           name: ctx.session?.user?.name,
           rotation: input,
         };
-        if( autoShooterControllers.has(ctx.session.user.name) ){
-          (autoShooterControllers.get(ctx.session.user.name) as AutoShooting).angle = input
-        }else{
-          autoShooterControllers.set(ctx.session.user.name, new AutoShooting());
-          (autoShooterControllers.get(ctx.session.user.name) as AutoShooting).angle = input
+        if (bulletController.has(ctx.session.user.name)) {
+          (
+            bulletController.get(ctx.session.user.name) as BulletController
+          ).angle = input;
+        } else {
+          bulletController.set(ctx.session.user.name, new BulletController());
+          (
+            bulletController.get(ctx.session.user.name) as BulletController
+          ).angle = input;
         }
         ctx.ee.emit(Events.SEND_ROTATION, rotation);
       }
@@ -85,40 +86,44 @@ export const gameMovement = router({
   clientFire: protectedProcedure
     .input(z.number())
     .mutation(async ({ ctx, input }) => {
-      if (ctx.session?.user?.name && input) {
-        const rotation: RotationData = {
-          name: ctx.session?.user?.name,
-          rotation: input,
+      if (ctx.session?.user?.name) {
+        const bulletData: BulletData = {
+          player: ctx.session?.user?.name,
+          gun: input,
         };
-        pg?.fire(rotation);
+        console.log(input);
+        
+        bulletController.get(bulletData.player)?.fire(bulletData);
       }
     }),
-    autoFireToggle: protectedProcedure
-    .input(z.boolean())
+
+  autoFireToggle: protectedProcedure
+    .input(z.object({ autoShooting: z.boolean(), gun: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      input?console.log("q pressed"):console.log("q unpressed");
-      
-      if(ctx.session?.user?.name){
-        input?autoShooterControllers.get(ctx.session?.user?.name)?.fireOn(ctx.session?.user?.name):autoShooterControllers.get(ctx.session?.user?.name)?.fireOff()
-
-      }
-      
-    }),
-
-    pauseTheGame: protectedProcedure
-    .mutation(async () => {
-      pg?.pause();
-    }),
-    restartTheGame: protectedProcedure
-    .mutation(async () => {
-     // pg= null;
-     // pg = new Playground();
-    }),
-    holyHailGrenade: protectedProcedure
-    .mutation(async ({ ctx }) => {
-      if(ctx.session?.user?.name){
-        autoShooterControllers.get(ctx.session?.user?.name)?.holyHailGrenade(ctx.session?.user?.name)
-
+      if (ctx.session?.user?.name) {
+        const bulletData: BulletData = {
+          player: ctx.session?.user?.name,
+          gun: input.gun,
+        };
+        if (input.autoShooting) {
+          bulletController.get(bulletData.player)?.fireOn(bulletData);
+        } else {
+          bulletController.get(bulletData.player)?.fireOff();
+        }
       }
     }),
+
+  pauseTheGame: protectedProcedure.mutation(async () => {
+    pg?.pause();
+  }),
+  restartTheGame: protectedProcedure.mutation(async () => {
+    // pg= null;
+    // pg = new Playground();
+  }),
+   setTurret: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.session?.user?.name) {
+      pg.setTurret(ctx.session?.user?.name)
+      
+    }
+  }),
 });

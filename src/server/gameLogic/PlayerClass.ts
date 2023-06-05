@@ -13,7 +13,7 @@ export class Player {
   private _hp = 1000;
   private _speedInit = 5
   private _speed = this._speedInit;
-  
+  private _cash = 0;
 
   private _move: MoveState = moveStateInitValues;
 
@@ -41,6 +41,15 @@ export class Player {
       this.coords.y / (playgroundSize.y / playgroundTiles.y)
     );
     return { x: tx0, y: ty0 };
+  }
+  get cash (){
+    return this._cash
+  }
+  addCash(cash:number){
+    this._cash += cash
+  }
+  spendCash(cash:number){
+    this._cash -= cash
   }
   
   private _moving(size: Coords) {

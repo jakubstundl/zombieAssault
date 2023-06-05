@@ -1,4 +1,4 @@
-import type { Coords } from "../../constants/schemas";
+import type { Coords, EnemyContructor } from "../../constants/schemas";
 import easystarjs from "easystarjs";
 import {
   playgroundSize,
@@ -12,26 +12,37 @@ import { pg } from "../trpc/router/gameMovementRouter";
 import { coordsDistance } from "../../constants/functions";
 
 export class Enemy {
-  colision = 50;
-  hp = 10;
-  private _speed = 14;
-  private _dmg = 10;
+  private _colision;
+  hp;
+  private _speed;
+  private _dmg;
   private _angle = 0;
   private _distanceFromTheTarget = playgroundSize.x + playgroundSize.y;
   private _tileCounter = 0;
   private _targetForPathFinder: Coords = { x: 0, y: 0 };
   private _targetPoints: Coords[] = [];
-  private _targetTiles: Coords[] = [];
-
+  private _enemyID;
+  private _monster;
   private _coords: Coords;
-  constructor(coords: Coords) {
-    this._coords = coords;
+  private _slowDown = false;
+
+  constructor(enemyConstructor: EnemyContructor) {
+    this._coords = enemyConstructor.coords;
+    this._monster = enemyConstructor.monster;
+    this._enemyID = enemyConstructor.enemyID;
+    this._dmg = enemyConstructor.damage;
+    this._colision = enemyConstructor.colision;
+    this.hp = enemyConstructor.hp;
+    this._speed = enemyConstructor.speed;
   }
   get coords(): Coords {
     return this._coords;
   }
   get rotation(): number {
     return this._angle;
+  }
+  get colision() {
+    return this._colision;
   }
 
   get tile(): Coords {
@@ -43,21 +54,32 @@ export class Enemy {
     );
     return { x: tx0, y: ty0 };
   }
+  get id() {
+    return this._enemyID;
+  }
+  get monster() {
+    return this._monster;
+  }
+  
 
   pathfinder() {
     console.log("Pathfinder has been called");
 
     this._targetPoints = [];
-    this._targetTiles = [];
-
     this._tileCounter = 0;
     const easystar = new easystarjs.js();
     easystar.setGrid(grid);
     easystar.setAcceptableTiles([0, 2]);
-    const tx0 = Math.max(Math.floor(this.coords.x / (playgroundSize.x / playgroundTiles.x)),0);
-    const ty0 = Math.max(Math.floor(this.coords.y / (playgroundSize.y / playgroundTiles.y)),0);
+    const tx0 = Math.max(
+      Math.floor(this.coords.x / (playgroundSize.x / playgroundTiles.x)),
+      0
+    );
+    const ty0 = Math.max(
+      Math.floor(this.coords.y / (playgroundSize.y / playgroundTiles.y)),
+      0
+    );
     console.log("Tiles", tx0, ty0);
-    
+
     easystar.findPath(
       tx0,
       ty0,
@@ -67,12 +89,12 @@ export class Enemy {
         if (path === null) {
           console.log("Path was not found.");
         } else {
-          console.log(
+          /* console.log(
             "Path was found. The first Point is " +
               path[0]?.x +
               " " +
               path[0]?.y
-          );
+          ); */
 
           path.forEach((p) => {
             this._targetPoints.push({
@@ -95,6 +117,7 @@ export class Enemy {
   }
 
   move() {
+    const speed = this._slowDown?this._speed/2:this._speed
     const x0 = this._coords.x;
     const y0 = this._coords.y;
     const x1 = this._targetPoints[this._tileCounter]?.x;
@@ -125,14 +148,16 @@ export class Enemy {
         }
 
         if (this._targetPoints[this._tileCounter]) {
-          this._coords.x += Math.sin(this._angle) * this._speed;
-          this._coords.y += Math.cos(this._angle) * this._speed;
+          this._coords.x += Math.sin(this._angle) * speed;
+          this._coords.y += Math.cos(this._angle) * speed;
         }
       }
     }
   }
 
   interval: NodeJS.Timer = setInterval(() => {
+   
+    
     this._distanceFromTheTarget =
       Math.max(playgroundSize.x, playgroundSize.y) * 2;
     let playerToChase = "";
@@ -168,7 +193,7 @@ export class Enemy {
         }
       }
     }
-    /*   console.log("enemy interval running");
+      /* console.log("enemy interval running", this.id);
    console.log("tilecounter:" , this._tileCounter);
     console.log("Player's tile: ", pg.players.get(playerToChase)?.tile);
     console.log("This's tile: ", this.tile);
@@ -178,5 +203,10 @@ export class Enemy {
   }, 200);
   clearInterval() {
     clearInterval(this.interval);
+  }
+
+  getHit(){
+   this._slowDown = true
+    setTimeout(()=>{this._slowDown=false},1000)
   }
 }

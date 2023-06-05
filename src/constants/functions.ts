@@ -3,6 +3,7 @@ import {
   imgSize,
   playgroundSize,
   playgroundTiles,
+  numberOfMonsters
 } from "./gameConstants";
 import type { Coords } from "./schemas";
 
@@ -75,3 +76,7 @@ export const enemyRandomSpawnCoords = (): Coords => {
       break;
   }
 };
+
+export const spawnRandomEnemy = ():number =>{
+  return Math.floor(Math.random() * numberOfMonsters);
+}

@@ -8,28 +8,33 @@ import type {
   BulletsState,
   EnemiesState,
   PlayersState,
+  TurretsState,
 } from "../constants/schemas";
 import { moveStateInitValues } from "../constants/schemas";
 import React from "react";
-import { bulletImgURL, enemyImgURL } from "../constants/gameConstants";
+import {
+  bulletImgURL,
+  monsters,
+  guns,
+  turretImgURL,
+} from "../constants/gameConstants";
 
 const Game: NextPage = () => {
   const clientName = trpc.auth.getClientName.useQuery();
   const playgroundData = trpc.gameMovement.getPlaygroundData.useQuery();
   const [minimapSize, setMinimapSize] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>();
+
+  const [gun, setGun] = useState<number>(0);
   const [enemyCounter, setEnemyCounter] = useState<string>();
-  //Client movement, data sent to backend
   const [moveState, setMoveState] = useState<MoveState>(moveStateInitValues);
   const [clientMoveDirection, setClientMoveDirection] =
     useState<MoveState>(moveStateInitValues);
-  const [autoShootingEnabled, setAutoShootingEnabled] =
-    useState<boolean>(false);
   const [autoShooting, setAutoShooting] = useState<boolean>(false);
   const moveController = trpc.gameMovement.clientMovementData.useMutation();
+  const turretController = trpc.gameMovement.setTurret.useMutation();
   const pauseSignal = trpc.gameMovement.pauseTheGame.useMutation();
   const restartSignal = trpc.gameMovement.restartTheGame.useMutation();
-  const holyHailSignal = trpc.gameMovement.holyHailGrenade.useMutation();
   const rotationController = trpc.gameMovement.clientRotationData.useMutation();
   const bulletController = trpc.gameMovement.clientFire.useMutation();
   const autoShootingController = trpc.gameMovement.autoFireToggle.useMutation();
@@ -39,19 +44,20 @@ const Game: NextPage = () => {
   const restart = () => {
     restartSignal.mutate();
   };
-  const holyHail = () => {
-    holyHailSignal.mutate();
+  const setTurret = () => {
+    turretController.mutate();
   };
+
   const handleKeyParams = {
     moveState,
     setMoveState,
     clientMoveDirection,
     setClientMoveDirection,
-    setAutoShootingEnabled,
-    autoShootingEnabled,
     pause,
     restart,
-    holyHail,
+    gun,
+    setGun,
+    setTurret,
   };
 
   const [debug, setDebug] = useState<string>("Debug");
@@ -66,8 +72,9 @@ const Game: NextPage = () => {
       setAllPlayersPositions(stateData.players);
       setAllBulletsPositions(stateData.bullets);
       setAllEnemiesPositions(stateData.enemies);
+      setAllTurretsPositions(stateData.turrets);
       if (allBulletsPositions) {
-        setDebug(`${Object.keys(allBulletsPositions).length}`);
+        setDebug(`${allBulletsPositions.length}`);
       }
     },
   });
@@ -91,6 +98,8 @@ const Game: NextPage = () => {
     useState<BulletsState>();
   const [allEnemiesPositions, setAllEnemiesPositions] =
     useState<EnemiesState>();
+  const [allTurretsPositions, setAllTurretsPositions] =
+    useState<TurretsState>();
 
   useEffect(() => {
     if (document.activeElement === main.current) {
@@ -101,7 +110,7 @@ const Game: NextPage = () => {
   }, [moveState, rotationState]);
   useEffect(() => {
     if (document.activeElement === main.current) {
-      autoShootingController.mutate(autoShooting);
+      autoShootingController.mutate({ autoShooting, gun });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoShooting]);
@@ -124,10 +133,7 @@ const Game: NextPage = () => {
     mouseOverHandler(e, setRotationState);
   };
   const fire = () => {
-    bulletController.mutate(
-      rotationState + (Math.random() < 0.5 ? 1 : -1) * Math.random() * 5
-    );
-    console.warn();
+    bulletController.mutate(gun);
   };
 
   return (
@@ -149,7 +155,6 @@ const Game: NextPage = () => {
             onMouseMove={handleMouseOver}
             className="relative  box-border h-screen w-screen overflow-hidden bg-black"
           >
-           
             {allPlayersPositions &&
             allEnemiesPositions &&
             clientName.data &&
@@ -158,12 +163,12 @@ const Game: NextPage = () => {
                 ref={map}
                 className="duration-10 absolute flex"
                 onClick={() => {
-                  if (!autoShootingEnabled) {
+                  if (guns[gun]?.auto == false) {
                     fire();
                   }
                 }}
                 onMouseDown={() => {
-                  if (autoShootingEnabled) {
+                  if (guns[gun]?.auto) {
                     fire();
                     setAutoShooting(true);
                   }
@@ -239,25 +244,41 @@ const Game: NextPage = () => {
                     })}
                   {/* Renders Enemies */}
                   {allEnemiesPositions &&
-                    Object.keys(allEnemiesPositions).map((enemy, index) => {
+                    allEnemiesPositions.map((enemy, index) => {
                       return (
                         <div
                           key={index}
                           className="pointer-events-none absolute select-none bg-cover bg-center bg-no-repeat"
                           style={{
-                            backgroundImage: enemyImgURL,
-                            height:
-                              playgroundData.data?.imgSize?.get("enemy") || 0,
-                            width:
-                              playgroundData.data?.imgSize?.get("enemy") || 0,
-                            top: allEnemiesPositions[Number(enemy)]?.y,
-                            left: allEnemiesPositions[Number(enemy)]?.x,
+                            backgroundImage: monsters[enemy.monster || 0]?.url,
+                            height: monsters[enemy.monster || 0]?.imgSize || 0,
+                            width: monsters[enemy.monster || 0]?.imgSize || 0,
+                            top: enemy.y,
+                            left: enemy.x,
                             transform: `rotate(${
-                              -(
-                                allEnemiesPositions[Number(enemy)]?.rotation ||
-                                0
-                              ) +
-                              Math.PI / 2
+                              -(enemy.rotation || 0) + Math.PI / 2
+                            }rad)`,
+                          }}
+                        ></div>
+                      );
+                    })}
+                  {/* Renders Turrets */}
+                  {allTurretsPositions &&
+                    allTurretsPositions.map((turret, index) => {
+                      return (
+                        <div
+                          key={index}
+                          className="absolute bg-cover bg-center bg-no-repeat duration-100"
+                          style={{
+                            backgroundImage: turretImgURL,
+                            height:
+                              playgroundData.data?.imgSize?.get("turret") || 0,
+                            width:
+                              playgroundData.data?.imgSize?.get("turret") || 0,
+                            top: turret.y,
+                            left: turret.x,
+                            transform: `rotate(${
+                              -(turret.rotation || 0) + Math.PI / 2
                             }rad)`,
                           }}
                         ></div>
@@ -271,9 +292,9 @@ const Game: NextPage = () => {
           </div>
           {/*Display data */}
           <div className="absolute left-0 top-0 w-[10%] bg-black text-white">
-          Paused(p): {isPaused ? "ON" : "OFF"}
+            Paused(p): {isPaused ? "ON" : "OFF"}
             <br></br>
-            Automat(q): {autoShootingEnabled ? "ON" : "OFF"}
+            Automat(q): {autoShooting ? "ON" : "OFF"}
             <br></br>
             HP:{" "}
             {allPlayersPositions && clientName.data ? (
@@ -282,7 +303,14 @@ const Game: NextPage = () => {
               <></>
             )}
             <br></br>
-            Total bullets on the map: {debug} <br></br>
+            Cash:{" "}
+            {allPlayersPositions && clientName.data ? (
+              Math.ceil(allPlayersPositions[clientName.data]?.cash || 0)
+            ) : (
+              <></>
+            )}
+            <br></br>
+            {/*  autoSHooting: {} <br></br> */}
             Me: {clientName.data}
             <br></br>
             X:{" "}
@@ -315,18 +343,12 @@ const Game: NextPage = () => {
                       )} Y:${Math.floor(allPlayersPositions[player]?.y || 0)}`}
                     </p>
                   );
-                })} <br></br>
-                Enemies to kill: {enemyCounter}
-           
+                })}{" "}
+            <br></br>
+            Enemies to spawn: {enemyCounter}
           </div>
           {/*Minimap*/}
-          <div
-            className="absolute box-border aspect-square w-[10%] border border-2 border-black bg-white"
-            style={{
-              right: 10,
-              bottom: 10,
-            }}
-          >
+          <div className="absolute bottom-[10px] right-[10px] box-border aspect-square w-[10%] border border-2 border-black bg-white">
             <div
               className="relative h-full w-full bg-[url('/Background.png')] bg-cover bg-center bg-no-repeat"
               style={
@@ -356,7 +378,7 @@ const Game: NextPage = () => {
                   );
                 })}
               {allEnemiesPositions &&
-                Object.keys(allEnemiesPositions).map((enemy, index) => {
+                allEnemiesPositions.map((enemy, index) => {
                   return (
                     <div
                       key={index}
@@ -365,16 +387,27 @@ const Game: NextPage = () => {
                         top:
                           (minimapSize /
                             (playgroundData.data?.mapSize?.y || 0)) *
-                          (allEnemiesPositions[Number(enemy)]?.y || 0),
+                          (enemy.y || 0),
                         left:
                           (minimapSize /
                             (playgroundData.data?.mapSize?.x || 0)) *
-                          (allEnemiesPositions[Number(enemy)]?.x || 0),
+                          (enemy.x || 0),
                       }}
                     ></div>
                   );
                 })}
             </div>
+          </div>
+          {/*Gun display*/}
+          <div className="absolute bottom-[10px] left-[10px] box-border aspect-square w-[10%] border border-2  border-black bg-white text-center">
+            {guns[gun]?.name}
+            <div
+              className="h-[80%] w-full bg-contain bg-center bg-no-repeat"
+              style={{
+                backgroundImage: guns[gun]?.url,
+              }}
+            ></div>{" "}
+            q {"<--- --->"} e
           </div>
         </div>
       </main>

@@ -1,30 +1,41 @@
 import {
- 
+  monsters,
+  guns,
   imgSize,
   playgroundSize,
   playgroundTiles,
-numberOfEnemiesAtTheTime,
+  numberOfEnemiesAtTheTime,
   numberOfTotal,
 } from "../../constants/gameConstants";
 import type {
   ClientMovement,
-  RotationData,
   BulletsState,
   EnemiesState,
   PlayersState,
+  BulletData,
+  BulletContructor,
+  Coords,
+  EnemyContructor,
+  TurretsState,
 } from "../../constants/schemas";
 
 import { Player } from "./PlayerClass";
 import { Bullet } from "./BulletClass";
 import { Enemy } from "./EnemyClass";
-import { enemyRandomSpawnCoords } from "../../constants/functions";
+import {
+  enemyRandomSpawnCoords,
+  spawnRandomEnemy,
+} from "../../constants/functions";
+import { Turret } from "./TurretClass";
 
 export class Playground {
   private _size = playgroundSize;
   private _players: Map<string, Player> = new Map<string, Player>();
   private _bullets: Map<number, Bullet> = new Map<number, Bullet>();
+  private _turrets: Map<number, Turret> = new Map<number, Turret>();
   private _bulletCounter = 0;
   private _enemyCounter = 0;
+  private _turretCounter = 0;
   private _enemySpawnAtTheTime = numberOfEnemiesAtTheTime;
   private _enemyTotalNumber = numberOfTotal;
   private _enemies: Map<number, Enemy> = new Map<number, Enemy>();
@@ -36,21 +47,24 @@ export class Playground {
   get players() {
     return this._players;
   }
+  get enemies() {
+    return this._enemies;
+  }
   get imgSize(): Map<string, number> {
     return imgSize;
   }
   pause(): void {
     this._pause = !this._pause;
   }
-  get isPaused(){
-    return this._pause
+  get isPaused() {
+    return this._pause;
   }
 
   get size() {
     return this._size;
   }
-  get enemiesToKill(){
-    return `${this._enemyTotalNumber}`
+  get enemiesToKill() {
+    return `${this._enemyTotalNumber}`;
   }
 
   setInput(input: ClientMovement) {
@@ -62,19 +76,24 @@ export class Playground {
     }
   }
 
-  fire(bulletData: RotationData) {
-    if (!this.isPaused && this._players.has(bulletData.name)) {
-      const x0y0 = this._players.get(bulletData.name)?.coords;
-      if (x0y0) {
-        const angle = bulletData.rotation;
-        this._bullets.set(
-          this._bulletCounter,
-          new Bullet({ x: x0y0.x, y: x0y0.y }, angle)
-        );
-        this._bulletCounter++;
-      }
+  fire(bulletData: BulletData) {
+    if (!this.isPaused && this._players.has(bulletData.player)) {
+      const bulletCOntructor: BulletContructor = {
+        coords:
+          bulletData.coords ||
+          (this._players.get(bulletData.player)?.coords as Coords),
+        owner: bulletData.player,
+        angle: bulletData.rotation as number,
+        damage: guns[bulletData.gun]?.damage as number,
+        piercing: guns[bulletData.gun]?.piercing as number,
+        bulletSpeed: guns[bulletData.gun]?.bulletSpeed as number,
+        range: guns[bulletData.gun]?.range as number,
+      };
+      this._bullets.set(this._bulletCounter, new Bullet(bulletCOntructor));
+      this._bulletCounter++;
     }
-   // console.log(this._bulletCounter);
+
+    // console.log(this._bulletCounter);
   }
 
   getPlayersState(): PlayersState {
@@ -85,7 +104,8 @@ export class Playground {
           x: player.coords.x - (this.imgSize.get("player") || 0) / 2,
           y: player.coords.y - (this.imgSize.get("player") || 0) / 2,
           hp: player.hp,
-          };
+          cash: player.cash,
+        };
       }
     });
     return state;
@@ -102,15 +122,29 @@ export class Playground {
   }
 
   getEnemiesState(): EnemiesState {
-    const state: EnemiesState = {};
-    this._enemies.forEach((enemy, enemyIndex) => {
+    const state: EnemiesState = [];
+    this._enemies.forEach((enemy) => {
       if (enemy) {
-        state[enemyIndex] = {
-          x: enemy.coords.x - (this.imgSize.get("enemy") || 0) / 2,
-          y: enemy.coords.y - (this.imgSize.get("enemy") || 0) / 2,
-          hp: enemy.hp,
-          rotation: enemy.rotation,
-        };
+        state.push({
+          x: enemy.coords.x - (monsters[enemy.monster]?.imgSize || 0) / 2,
+          y: enemy.coords.y - (monsters[enemy.monster]?.imgSize || 0) / 2,
+          rotation:
+            enemy.rotation + (monsters[enemy.monster]?.rotationOffset || 0),
+          monster: enemy.monster,
+        });
+      }
+    });
+    return state;
+  }
+  getTurretsState(): TurretsState {
+    const state: TurretsState = [];
+    this._turrets.forEach((turret) => {
+      if (turret) {
+        state.push({
+          x: turret.coords.x-50,
+          y: turret.coords.y-50,
+          rotation: turret.angle,
+        });
       }
     });
     return state;
@@ -133,10 +167,13 @@ export class Playground {
           this._bullets.delete(bulletIndex);
         }
         this._enemies.forEach((enemy, enemyIndex) => {
-         bullet.hit(enemy)
-           
+          bullet.hit(enemy);
+
           if (enemy.hp < 0) {
             this._enemies.get(enemyIndex)?.clearInterval();
+            this._players
+              .get(bullet.owner)
+              ?.addCash(monsters[enemy.monster]?.cash || 0);
             this._enemies.delete(enemyIndex);
           }
         });
@@ -145,10 +182,17 @@ export class Playground {
         this._enemies.size < this._enemySpawnAtTheTime &&
         this._enemyTotalNumber > 0
       ) {
-        this._enemies.set(
-          this._enemyCounter,
-          new Enemy(enemyRandomSpawnCoords())
-        );
+        const monster = spawnRandomEnemy();
+        const enemyData: EnemyContructor = {
+          coords: enemyRandomSpawnCoords(),
+          monster: monster,
+          enemyID: this._enemyCounter as number,
+          damage: monsters[monster]?.damage as number,
+          colision: monsters[monster]?.colision as number,
+          hp: monsters[monster]?.hp as number,
+          speed: monsters[monster]?.speed as number,
+        };
+        this._enemies.set(this._enemyCounter, new Enemy(enemyData));
         this._enemyCounter++;
         this._enemyTotalNumber--;
       }
@@ -158,5 +202,12 @@ export class Playground {
   get tilesCenters() {
     playgroundTiles;
     return false;
+  }
+  setTurret(player: string) {
+    if (this._players.get(player)?.coords) {
+      const coords: Coords = this._players.get(player)?.coords as Coords;
+      this._turrets.set(this._turretCounter, new Turret(coords, player));
+      this._turretCounter++
+    }
   }
 }

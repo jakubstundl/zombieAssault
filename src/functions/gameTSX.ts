@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { HandleKeyMovement } from "../constants/schemas";
-import { AutoShooting } from "../server/gameLogic/AutoShootingClass";
+import { numberOfGuns } from "../constants/gameConstants";
 
 export const handleKey = (
   e: React.KeyboardEvent<HTMLElement>,
@@ -117,28 +117,27 @@ export const handleKey = (
           }
         }
         break;
-        case "q":
-          if(action){
-            params.setAutoShootingEnabled(!params.autoShootingEnabled)
-          }
-          break;
-          case "p":
-          if(action){
-            params.pause()
-          }
-          break;
-          case "r":
-            if(action){
-              params.restart()
-            }
-            break;
+      case "e":
+        if (action) {
+          params.setGun(Math.min(numberOfGuns-1, params.gun + 1));
+        }
+        break;
+      case "q":
+        if (action) {
+          params.setGun(Math.max(0, params.gun - 1));
+        }
+        break;
 
-            case "e":
-            if(action){
-              params.holyHail()
-            }
-            break;
-
+      case "p":
+        if (action) {
+          params.pause();
+        }
+        break;
+      case "r":
+        if (action) {
+          params.setTurret();
+        }
+        break;
 
       default:
         break;
@@ -151,8 +150,8 @@ export const mouseOverHandler = (
   setRotation: Dispatch<SetStateAction<number>>
 ) => {
   const div = e.currentTarget as HTMLDivElement;
-  const x = e.clientX - div.offsetLeft - window.innerWidth/2;
-  const y = e.clientY - div.offsetTop - window.innerHeight/2;
+  const x = e.clientX - div.offsetLeft - window.innerWidth / 2;
+  const y = e.clientY - div.offsetTop - window.innerHeight / 2;
   if (y < 0) {
     let angle = Math.atan(x / y) * (180 / Math.PI) * -1;
     if (angle < 0) {

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import z from "zod";
 
 export const sendMessageSchema = z.object({
@@ -32,16 +32,15 @@ export const clientMovementSchema = z.object({
 
 export type HandleKeyMovement = {
   moveState: MoveState;
-  setMoveState: Dispatch<
-    SetStateAction<MoveState>>;
+  setMoveState: Dispatch<SetStateAction<MoveState>>;
   clientMoveDirection: MoveState;
   setClientMoveDirection: Dispatch<SetStateAction<MoveState>>;
-  setAutoShootingEnabled: Dispatch<SetStateAction<boolean>>;
-  autoShootingEnabled:boolean
-  pause:()=>void
-  restart:()=>void
-  holyHail:()=>void
-  };
+  pause: () => void;
+  restart: () => void;
+  gun: number;
+  setGun: Dispatch<SetStateAction<number>>;
+  setTurret:()=>void
+};
 
 export type MoveState = {
   up: boolean;
@@ -64,7 +63,8 @@ export type PlayersState = {
   [k: string]: {
     x: number;
     y: number;
-    hp:number
+    hp: number;
+    cash:number;
   };
 };
 export type Coords = { x: number; y: number };
@@ -75,19 +75,51 @@ export type BulletsState = {
 }[];
 
 export type EnemiesState = {
-  [k: number]: {
     x: number;
     y: number;
-    hp: number;
-    rotation:number;
-  };
-};
+    rotation: number;
+    monster:number;  
+}[];
+
+export type TurretsState = {
+  x: number;
+  y: number;
+  rotation: number;
+}[];
 
 export type MoveAllObservable = {
-  players:PlayersState|undefined;
-  bullets:BulletsState|undefined;
-  enemies:EnemiesState|undefined;
-  pause:boolean|undefined;
-  enemiesToKill:string|undefined;
+  players: PlayersState | undefined;
+  bullets: BulletsState | undefined;
+  enemies: EnemiesState | undefined;
+  turrets: TurretsState | undefined
+  pause: boolean | undefined;
+  enemiesToKill: string | undefined;
 };
 
+export type BulletData = {
+  player: string;
+  gun: number;
+  rotation?: number;
+  coords?: Coords;
+};
+
+export type BulletContructor = {
+  coords: Coords;
+  owner: string;
+  angle: number;
+  damage: number;
+  piercing: number;
+  bulletSpeed: number;
+  range: number;
+};
+
+export type EnemyContructor = {
+  coords: Coords;
+  monster: number;
+  enemyID:number
+  damage: number;
+  colision: number;
+  hp: number;
+  speed: number;
+  rotationOffset?: number;
+};
