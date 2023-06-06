@@ -5,6 +5,7 @@ import { customAlphabet } from 'nanoid';
 import { useRouter } from "next/router";
 import { Modal } from "../components/Modal";
 import { useState } from "react";
+import { trpc } from "../utils/trpc";
 
 const nanoId = customAlphabet('abcdefghijklmnopqrstuvwxyz1234567890', 10);
 
@@ -13,6 +14,7 @@ const Home: NextPage = () => {
   const { data: session } = useSession();
   const [roomId, setRoomId] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const addMe = trpc.gameMovement.addPlayer.useMutation();
 
   const createPublicRoom = () => {
     router.push(`/rooms/public`);
@@ -66,7 +68,7 @@ const Home: NextPage = () => {
                {/*  <button className="w-full py-3 rounded-full bg-gradient-to-r from-sky-600 to-indigo-700 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={createPublicRoom}>Create Public Chat Room</button>
                 <button className="w-full py-3 rounded-full mt-3 bg-gradient-to-r from-sky-600 to-indigo-700 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={createPrivateRoom}>Create Private Chat Room</button>
                 <button className="w-full py-3 mt-3 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={() => setShowModal(true)}>Join Private Chat Room</button> */}
-                <button className="w-full py-3 mt-3 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={() =>  router.push(`/game`)}>Start Game</button>
+                <button className="w-full py-3 mt-3 text-white font-semibold transition-opacity duration-300 hover:opacity-30" onClick={() =>{addMe.mutate();setTimeout(()=>{router.push(`/game`)},1000)}}>Start Game</button>
 
               </div>
             ) : (

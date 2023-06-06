@@ -7,10 +7,11 @@ import type {
 } from "../../../constants/schemas";
 import { clientMovementSchema } from "../../../constants/schemas";
 import { observable } from "@trpc/server/observable";
-import { router, publicProcedure, protectedProcedure } from "../trpc";
+import { router, protectedProcedure } from "../trpc";
 import { Playground } from "../../gameLogic/PlaygroundClass";
 import { z } from "zod";
 import { BulletController } from "../../gameLogic/BulletControllerClass";
+import { turrets } from "../../../constants/gameConstants";
 
 export const pg: Playground | null = new Playground();
 const bulletController = new Map<string, BulletController>();
@@ -18,6 +19,20 @@ const bulletController = new Map<string, BulletController>();
 export const gameMovement = router({
   getPlaygroundData: protectedProcedure.query(() => {
     return { imgSize: pg?.imgSize, mapSize: pg?.size };
+  }),
+
+  getAvailableGuns: protectedProcedure.mutation(({ctx}) => {
+    if(ctx.session.user.name){
+       console.log(pg.players.get(ctx.session.user.name)?.availableGuns);       
+      return pg.players.get(ctx.session.user.name)?.availableGuns;
+       }
+  }),
+
+  buyGun: protectedProcedure.input(z.number()).mutation(({ctx, input}) => {
+    if(ctx.session.user.name && input){
+      pg.players.get(ctx.session.user.name)?.buyGun(input);
+      return pg.players.get(ctx.session.user.name)?.availableGuns;
+       }
   }),
 
   clientMovementData: protectedProcedure
@@ -41,8 +56,7 @@ export const gameMovement = router({
           turrets: pg?.getTurretsState(),
           pause: pg.isPaused,
           enemiesToKill: pg.enemiesToKill,
-        });
-      
+        });      
       }, 20);
     });
   }),
@@ -121,9 +135,20 @@ export const gameMovement = router({
     // pg = new Playground();
   }),
    setTurret: protectedProcedure.mutation(async ({ ctx }) => {
-    if (ctx.session?.user?.name) {
-      pg.setTurret(ctx.session?.user?.name)
+    const player = ctx.session?.user?.name
+    if (player) {
+      if( (pg.players.get(player)?.cash||0) >= (turrets[0]?.cashToBuild||Infinity)){
+        pg.players.get(player)?.spendCash((turrets[0]?.cashToBuild||0))
+        pg.setTurret(player)
+      }
       
     }
   }),
+
+  addPlayer: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.session?.user?.name) {
+      pg.setNewPlayer(ctx.session?.user?.name)
+      
+    }
+  }),  
 });

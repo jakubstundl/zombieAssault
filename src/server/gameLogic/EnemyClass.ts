@@ -7,6 +7,8 @@ import {
   distanceToDoDmg,
   distanceToMove,
   distanceToIgnorePathfinder,
+  enemySlowDownDurationAfterHit,
+  enemyInterval,
 } from "../../constants/gameConstants";
 import { pg } from "../trpc/router/gameMovementRouter";
 import { coordsDistance } from "../../constants/functions";
@@ -88,6 +90,7 @@ export class Enemy {
       (path) => {
         if (path === null) {
           console.log("Path was not found.");
+          this.pathfinder()
         } else {
           /* console.log(
             "Path was found. The first Point is " +
@@ -171,7 +174,7 @@ export class Enemy {
     });
 
     if (pg?.players.has(playerToChase)) {
-      if (this._distanceFromTheTarget < 250) {
+      if (this._distanceFromTheTarget < distanceToIgnorePathfinder) {
         this._tileCounter = 0;
         this._targetPoints = [];
         this._targetPoints[0] = pg?.players.get(playerToChase)
@@ -200,13 +203,13 @@ export class Enemy {
     console.log("Actual target position: ", this._targetPoints[this._tileCounter]);
     console.log("Angle: ", this.rotation);
  console.log(`Distance: ${this._distanceFromTheTarget}, name: ${playerToChase}`); */
-  }, 200);
+  }, enemyInterval);
   clearInterval() {
     clearInterval(this.interval);
   }
 
   getHit(){
    this._slowDown = true
-    setTimeout(()=>{this._slowDown=false},1000)
+    setTimeout(()=>{this._slowDown=false},enemySlowDownDurationAfterHit)
   }
 }

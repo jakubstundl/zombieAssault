@@ -6,6 +6,7 @@ import {
   playgroundTiles,
   numberOfEnemiesAtTheTime,
   numberOfTotal,
+  turrets,
 } from "../../constants/gameConstants";
 import type {
   ClientMovement,
@@ -67,27 +68,43 @@ export class Playground {
     return `${this._enemyTotalNumber}`;
   }
 
+  setNewPlayer(name:string){
+    if (name) {
+      if (!this._players.has(name)) {
+        this._players.set(name, new Player());
+      }
+      
+    }
+  }
+
   setInput(input: ClientMovement) {
     if (input.name) {
-      if (!this._players.has(input.name)) {
-        this._players.set(input.name, new Player());
+      if (this._players.has(input.name)) {        
+        this._players.get(input.name)?.play(input);
       }
-      this._players.get(input.name)?.play(input);
     }
   }
 
   fire(bulletData: BulletData) {
     if (!this.isPaused && this._players.has(bulletData.player)) {
+let weapon;
+if(bulletData.gun!=undefined){
+  weapon = guns[bulletData.gun]
+}else{
+  if(bulletData.turret!=undefined){
+    weapon = turrets[bulletData.turret]
+  }
+}
       const bulletCOntructor: BulletContructor = {
         coords:
           bulletData.coords ||
           (this._players.get(bulletData.player)?.coords as Coords),
         owner: bulletData.player,
         angle: bulletData.rotation as number,
-        damage: guns[bulletData.gun]?.damage as number,
-        piercing: guns[bulletData.gun]?.piercing as number,
-        bulletSpeed: guns[bulletData.gun]?.bulletSpeed as number,
-        range: guns[bulletData.gun]?.range as number,
+        damage: weapon?.damage as number,
+        piercing: weapon?.piercing as number,
+        bulletSpeed: weapon?.bulletSpeed as number,
+        range: weapon?.bulletRange as number,
       };
       this._bullets.set(this._bulletCounter, new Bullet(bulletCOntructor));
       this._bulletCounter++;
@@ -182,7 +199,7 @@ export class Playground {
         this._enemies.size < this._enemySpawnAtTheTime &&
         this._enemyTotalNumber > 0
       ) {
-        const monster = spawnRandomEnemy();
+        const monster = 0 //spawnRandomEnemy();
         const enemyData: EnemyContructor = {
           coords: enemyRandomSpawnCoords(),
           monster: monster,

@@ -18,14 +18,20 @@ import {
   guns,
   turretImgURL,
 } from "../constants/gameConstants";
+import router from "next/router";
 
 const Game: NextPage = () => {
   const clientName = trpc.auth.getClientName.useQuery();
   const playgroundData = trpc.gameMovement.getPlaygroundData.useQuery();
+  const getAvailableGuns = trpc.gameMovement.getAvailableGuns.useMutation();
+  const buyGun = trpc.gameMovement.buyGun.useMutation();
+
   const [minimapSize, setMinimapSize] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>();
-
   const [gun, setGun] = useState<number>(0);
+  const [availableGuns, setAvailableGuns] = useState<boolean[]>(
+    getAvailableGuns.data || []
+  );
   const [enemyCounter, setEnemyCounter] = useState<string>();
   const [moveState, setMoveState] = useState<MoveState>(moveStateInitValues);
   const [clientMoveDirection, setClientMoveDirection] =
@@ -48,6 +54,10 @@ const Game: NextPage = () => {
     turretController.mutate();
   };
 
+  const unlockGun = (n: number) => {
+    buyGun.mutate(n);
+  };
+
   const handleKeyParams = {
     moveState,
     setMoveState,
@@ -58,6 +68,8 @@ const Game: NextPage = () => {
     gun,
     setGun,
     setTurret,
+    availableGuns,
+    unlockGun,
   };
 
   const [debug, setDebug] = useState<string>("Debug");
@@ -102,6 +114,31 @@ const Game: NextPage = () => {
     useState<TurretsState>();
 
   useEffect(() => {
+    if (main.current) {
+      main.current.focus();
+    }
+    getAvailableGuns.mutate();
+  }, []);
+
+  useEffect(() => {
+    if (getAvailableGuns.data) {
+      setAvailableGuns(getAvailableGuns.data);
+    }
+  }, [getAvailableGuns.data]);
+
+  useEffect(() => {
+    if (buyGun.data) {
+      setAvailableGuns(buyGun.data);
+    }
+  }, [buyGun.data]);
+
+  useEffect(() => {
+    if (allPlayersPositions && Object.keys(allPlayersPositions).length == 0) {
+      router.push("/");
+    }
+  }, [allPlayersPositions]);
+
+  useEffect(() => {
     if (document.activeElement === main.current) {
       moveController.mutate(moveState);
       rotationController.mutate(rotationState);
@@ -109,9 +146,14 @@ const Game: NextPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moveState, rotationState]);
   useEffect(() => {
-    if (document.activeElement === main.current) {
+    if (
+      document.activeElement === main.current &&
+      availableGuns &&
+      availableGuns[gun]
+    ) {
       autoShootingController.mutate({ autoShooting, gun });
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoShooting]);
 
@@ -123,17 +165,18 @@ const Game: NextPage = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     handleKey(e, true, handleKeyParams);
-    //  setAnimation(true);
   };
   const handleKeyUp = (e: React.KeyboardEvent<HTMLElement>) => {
     handleKey(e, false, handleKeyParams);
-    // setAnimation(false);
   };
   const handleMouseOver = (e: React.MouseEvent<HTMLInputElement>) => {
     mouseOverHandler(e, setRotationState);
   };
+
   const fire = () => {
-    bulletController.mutate(gun);
+    if (availableGuns && availableGuns[gun]) {
+      bulletController.mutate(gun);
+    }
   };
 
   return (
@@ -147,6 +190,7 @@ const Game: NextPage = () => {
         className="h-screen w-screen bg-[#171717]"
         ref={main}
         tabIndex={-1}
+        autoFocus
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
       >
@@ -188,15 +232,6 @@ const Game: NextPage = () => {
                     -(allPlayersPositions[clientName.data]?.x || 0) +
                     window.innerWidth / 2 -
                     (playgroundData.data.imgSize?.get("player") || 0) / 2,
-                  /* top:
-                    -(allEnemiesPositions[0]?.y || 0) +
-                    window.innerHeight / 2 -
-                    (playgroundData.data.imgSize.get("player") || 0) / 2,
-
-                  left:
-                    -(allEnemiesPositions[0]?.x || 0) +
-                    window.innerWidth / 2 -
-                    (playgroundData.data.imgSize.get("player") || 0) / 2, */
                 }}
               >
                 <div className="flex h-full w-full flex-wrap bg-[url('/Background.png')] bg-cover bg-center bg-no-repeat">
@@ -244,6 +279,7 @@ const Game: NextPage = () => {
                     })}
                   {/* Renders Enemies */}
                   {allEnemiesPositions &&
+                    clientName.data &&
                     allEnemiesPositions.map((enemy, index) => {
                       return (
                         <div
@@ -332,12 +368,7 @@ const Game: NextPage = () => {
                 .filter((player) => player != clientName.data)
                 .map((player, index) => {
                   return (
-                    <p
-                      key={index}
-                      /* style={{
-                        color: "black",
-                      }} */
-                    >
+                    <p key={index}>
                       {`${player} X:${Math.floor(
                         allPlayersPositions[player]?.x || 0
                       )} Y:${Math.floor(allPlayersPositions[player]?.y || 0)}`}
@@ -345,7 +376,8 @@ const Game: NextPage = () => {
                   );
                 })}{" "}
             <br></br>
-            Enemies to spawn: {enemyCounter}
+            Enemies to spawn: {enemyCounter} <br></br>
+            
           </div>
           {/*Minimap*/}
           <div className="absolute bottom-[10px] right-[10px] box-border aspect-square w-[10%] border border-2 border-black bg-white">
@@ -400,10 +432,14 @@ const Game: NextPage = () => {
           </div>
           {/*Gun display*/}
           <div className="absolute bottom-[10px] left-[10px] box-border aspect-square w-[10%] border border-2  border-black bg-white text-center">
-            {guns[gun]?.name}
+            {guns[gun]?.type}
+            {availableGuns[gun] ? "" : `
+            Press b to unlock for ${guns[gun]?.cashToUnlock}$
+            `}
             <div
               className="h-[80%] w-full bg-contain bg-center bg-no-repeat"
               style={{
+                opacity: availableGuns[gun] ? 1 : 0.2,
                 backgroundImage: guns[gun]?.url,
               }}
             ></div>{" "}

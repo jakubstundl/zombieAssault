@@ -1,6 +1,8 @@
 import type { Coords, MoveState } from "../../constants/schemas";
 import { moveStateInitValues } from "../../constants/schemas";
 import {
+  availableGunsInit,
+  guns,
   playerSpawnPosition,
   playgroundSize,
   playgroundTiles,
@@ -14,6 +16,7 @@ export class Player {
   private _speedInit = 5
   private _speed = this._speedInit;
   private _cash = 0;
+  private _availableGuns = availableGunsInit;
 
   private _move: MoveState = moveStateInitValues;
 
@@ -48,8 +51,23 @@ export class Player {
   addCash(cash:number){
     this._cash += cash
   }
+
   spendCash(cash:number){
     this._cash -= cash
+  }
+  
+
+  get availableGuns(){
+    return this._availableGuns
+  }
+
+
+  buyGun(n:number){
+    if((guns[n]?.cashToUnlock||Infinity)<=this._cash){
+      this._availableGuns[n] = true
+      this._cash -= guns[n]?.cashToUnlock || 0
+
+    }
   }
   
   private _moving(size: Coords) {

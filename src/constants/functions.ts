@@ -51,6 +51,8 @@ export const allowedAreaForBullets = (x: number, y: number): boolean => {
 
 export const enemyRandomSpawnCoords = (): Coords => {
   const walls = ["left", "right", "up", "down"];
+  
+
   const safeOffset = 10
   const choosenWall = walls[Math.floor(Math.random() * walls.length)];
   switch (choosenWall) {

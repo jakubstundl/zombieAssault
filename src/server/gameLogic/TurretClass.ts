@@ -1,5 +1,5 @@
 import { coordsDistance } from "../../constants/functions";
-import { playgroundSize } from "../../constants/gameConstants";
+import { playgroundSize, turrets } from "../../constants/gameConstants";
 import type { BulletData, Coords } from "../../constants/schemas";
 import { pg } from "../trpc/router/gameMovementRouter";
 
@@ -8,6 +8,7 @@ export class Turret {
   private _distanceFromTheTarget = 0;
   private _owner;
   private _angle = 0;
+  private _turretType = 0
 
   constructor(coords: Coords, owner: string) {
     this._coords = coords;
@@ -35,7 +36,7 @@ export class Turret {
     });
 
     if (closestEnemyCoords) {
-      if (this._distanceFromTheTarget < 250) {
+      if (this._distanceFromTheTarget < (turrets[this._turretType]?.turretRange||0)) {
         const x0 = this._coords.x;
         const y0 = this._coords.y;
         const x1 = closestEnemyCoords.x;
@@ -53,7 +54,7 @@ export class Turret {
 
         const bulletData: BulletData = {
           player: this._owner,
-          gun: 5,
+          turret: this._turretType,
           rotation: this._angle * (180 / Math.PI) * -1 + 180,
           coords: this._coords
         };
@@ -62,7 +63,7 @@ export class Turret {
         pg?.fire(bulletData);
       }
     }
-  }, 50);
+  }, 1000/(turrets[this._turretType]?.cadence||1));
   clearInterval() {
     clearInterval(this.interval);
   }

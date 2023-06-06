@@ -119,12 +119,19 @@ export const handleKey = (
         break;
       case "e":
         if (action) {
-          params.setGun(Math.min(numberOfGuns-1, params.gun + 1));
+          params.setGun(Math.min(numberOfGuns - 1, params.gun + 1));
         }
         break;
       case "q":
         if (action) {
           params.setGun(Math.max(0, params.gun - 1));
+        }
+        break;
+      case "b":
+        if (action) {
+          if (!params.availableGuns[params.gun]) {
+            params.unlockGun(params.gun);
+          }
         }
         break;
 

@@ -13,7 +13,8 @@ export class BulletController {
   }
 
   fire(bulletData: BulletData) {
-    switch (guns[bulletData.gun]?.name) {
+  if(bulletData.gun==undefined) return
+    switch (guns[bulletData.gun]?.type) {
       case "Shotgun":
         for (let i = -25; i <= 25; i = i + 5) {
           bulletData.rotation = this.angle + i;
@@ -26,22 +27,20 @@ export class BulletController {
         pg?.fire(bulletData);
         break;
     }
+
   }
 
   fireOn(bulletData: BulletData) {
+    if(bulletData.gun==undefined) return
     this.interval = setInterval(() => {
       bulletData.rotation = this.angle;
       pg?.fire(bulletData);
     }, 1000 / (guns[bulletData.gun]?.cadence || 1));
+    
   }
   fireOff() {
     clearInterval(this.interval);
   }
 
-  /* holyHailGrenade(name: string) {
-    for (let i = 0; i < 360; i++) {
-      const rotationData: RotationData = { name, rotation: i };
-      pg?.fire(rotationData);
-    } 
-  }*/
+  
 }

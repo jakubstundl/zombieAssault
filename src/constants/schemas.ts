@@ -38,8 +38,10 @@ export type HandleKeyMovement = {
   pause: () => void;
   restart: () => void;
   gun: number;
-  setGun: Dispatch<SetStateAction<number>>;
-  setTurret:()=>void
+  setGun: Dispatch<SetStateAction<number>>; 
+  setTurret: () => void;
+  unlockGun:(n:number) => void
+  availableGuns:boolean[]
 };
 
 export type MoveState = {
@@ -64,7 +66,7 @@ export type PlayersState = {
     x: number;
     y: number;
     hp: number;
-    cash:number;
+    cash: number;
   };
 };
 export type Coords = { x: number; y: number };
@@ -75,10 +77,10 @@ export type BulletsState = {
 }[];
 
 export type EnemiesState = {
-    x: number;
-    y: number;
-    rotation: number;
-    monster:number;  
+  x: number;
+  y: number;
+  rotation: number;
+  monster: number;
 }[];
 
 export type TurretsState = {
@@ -91,14 +93,15 @@ export type MoveAllObservable = {
   players: PlayersState | undefined;
   bullets: BulletsState | undefined;
   enemies: EnemiesState | undefined;
-  turrets: TurretsState | undefined
+  turrets: TurretsState | undefined;
   pause: boolean | undefined;
   enemiesToKill: string | undefined;
 };
 
 export type BulletData = {
   player: string;
-  gun: number;
+  gun?: number;
+  turret?: number;
   rotation?: number;
   coords?: Coords;
 };
@@ -116,10 +119,46 @@ export type BulletContructor = {
 export type EnemyContructor = {
   coords: Coords;
   monster: number;
-  enemyID:number
+  enemyID: number;
   damage: number;
   colision: number;
   hp: number;
   speed: number;
   rotationOffset?: number;
+};
+
+export type MonsterProperties = {
+  type: string;
+  monterIndex: number;
+  url: string;
+  imgSize: number;
+  rotationOffset?: number;
+  damage: number;
+  colision: number;
+  hp: number;
+  speed: number;
+  cash: number;
+};
+export type GunProperties = {
+  type: string;
+  gunIndex: number;
+  cashToUnlock:number;
+  url: string;
+  damage: number;
+  auto: boolean;
+  cadence?:number
+  piercing: number;
+  bulletSpeed: number;
+  bulletRange: number;
+};
+export type TurretProperties = {
+  type: string;
+  turretIndex: 0;
+  cashToBuild: number,
+  damage: number;
+  piercing: number;
+  cadence: number;
+  bulletSpeed: number;
+  bulletRange: number;
+  turretRange: number;
 };
