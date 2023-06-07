@@ -3,8 +3,9 @@ import {
   imgSize,
   playgroundSize,
   playgroundTiles,
-  numberOfMonsters
+  
 } from "./gameConstants";
+import { numberOfMonsters } from "./objectProperties/monsterProperties";
 import type { Coords } from "./schemas";
 
 export const coordsDistance = (a: Coords, b: Coords): number => {
@@ -82,3 +83,111 @@ export const enemyRandomSpawnCoords = (): Coords => {
 export const spawnRandomEnemy = ():number =>{
   return Math.floor(Math.random() * numberOfMonsters);
 }
+
+const safeOffset = 10;
+export const upleftF = (): Coords => {
+  return {
+    x: Math.floor((Math.random() * playgroundSize.x) / 2) + safeOffset,
+    y: safeOffset,
+  };
+};
+
+export const uprightF = (): Coords => {
+  return {
+    x:
+      Math.floor(
+        (Math.random() * playgroundSize.x) / 2 + playgroundSize.x / 2
+      ) - safeOffset,
+    y: safeOffset,
+  };
+};
+
+export const downleftF = (): Coords => {
+  return {
+    x: Math.floor((Math.random() * playgroundSize.x) / 2) + safeOffset,
+    y: playgroundSize.y - safeOffset,
+  };
+};
+export const downrightF = (): Coords => {
+  return {
+    x:
+      Math.floor(
+        (Math.random() * playgroundSize.x) / 2 + playgroundSize.x / 2
+      ) - safeOffset,
+    y: playgroundSize.y - safeOffset,
+  };
+};
+
+export const leftupF = (): Coords => {
+  return {
+    x: safeOffset,
+    y: Math.floor((Math.random() * playgroundSize.y) / 2) + safeOffset,
+  };
+};
+export const leftdownF = (): Coords => {
+  return {
+    x: safeOffset,
+    y:
+      Math.floor(
+        (Math.random() * playgroundSize.y) / 2 + playgroundSize.y / 2
+      ) - safeOffset,
+  };
+};
+
+export const rightupF = (): Coords => {
+  return {
+    x: playgroundSize.x - safeOffset,
+    y: Math.floor((Math.random() * playgroundSize.y) / 2) + safeOffset,
+  };
+};
+export const rightdownF = (): Coords => {
+  return {
+    x: playgroundSize.x - safeOffset,
+    y:
+      Math.floor(
+        (Math.random() * playgroundSize.y) / 2 + playgroundSize.y / 2
+      ) - safeOffset,
+  };
+};
+
+
+export const pushEnemies = (enemy: number, count: number, coords: string):[number, Coords][] => {
+  const enemies:[number, Coords][] = []
+  for (let i = 0; i < count; i++) {
+    let coord;
+    switch (coords) {
+      case "rightup":
+        coord = rightupF();
+        break;
+        case "rightdown":
+        coord = rightdownF();
+        break;
+        case "leftup":
+        coord = leftupF();
+        break;
+        case "leftdown":
+        coord = leftdownF();
+        break;
+        case "upleft":
+        coord = upleftF();
+        break;
+        case "upright":
+        coord = uprightF();
+        break;
+        case "downleft":
+        coord = downleftF();
+        break;
+        case "downright":
+        coord = downrightF();
+        break;
+        case "random":
+        coord = enemyRandomSpawnCoords();
+          break;
+      default:
+        coord = { x: 0, y: 0 };
+        break;
+    }
+    enemies.push([enemy, coord]);
+  }
+  return enemies
+};

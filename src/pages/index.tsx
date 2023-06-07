@@ -14,7 +14,7 @@ const Home: NextPage = () => {
   const { data: session } = useSession();
   const [roomId, setRoomId] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const addMe = trpc.gameMovement.addPlayer.useMutation();
+  const addMe = trpc.gameManagement.addPlayer.useMutation();
 
   const createPublicRoom = () => {
     router.push(`/rooms/public`);

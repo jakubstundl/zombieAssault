@@ -1,24 +1,30 @@
 import type { Coords, MoveState } from "../../constants/schemas";
 import { moveStateInitValues } from "../../constants/schemas";
 import {
-  availableGunsInit,
-  guns,
+  playerHP,
+  playerMovingSpeed,
   playerSpawnPosition,
+  playerStatingCash,
   playgroundSize,
   playgroundTiles,
 } from "../../constants/gameConstants";
 import { allowedAreaForPlayers } from "../../constants/functions";
+import {
+  availableGunsInit,
+  guns,
+} from "../../constants/objectProperties/gunProperties";
 
 export class Player {
   private _x = playerSpawnPosition.x;
   private _y = playerSpawnPosition.y;
-  private _hp = 1000;
-  private _speedInit = 5
+  private _hp = playerHP;
+  private _maxHp = playerHP;
+  private _speedInit = playerMovingSpeed;
   private _speed = this._speedInit;
-  private _cash = 0;
+  private _cash = playerStatingCash;
   private _availableGuns = availableGunsInit;
-
   private _move: MoveState = moveStateInitValues;
+  private _ready = false;
 
   play(input: MoveState) {
     this._move = {
@@ -36,6 +42,9 @@ export class Player {
   get hp() {
     return this._hp;
   }
+  get hpPercentage() {
+    return `${Math.round((this._hp / this._maxHp) * 100)}%`;
+  }
   get tile(): Coords {
     const tx0 = Math.floor(
       this.coords.x / (playgroundSize.x / playgroundTiles.x)
@@ -45,31 +54,36 @@ export class Player {
     );
     return { x: tx0, y: ty0 };
   }
-  get cash (){
-    return this._cash
+  get cash() {
+    return this._cash;
   }
-  addCash(cash:number){
-    this._cash += cash
-  }
-
-  spendCash(cash:number){
-    this._cash -= cash
-  }
-  
-
-  get availableGuns(){
-    return this._availableGuns
+  addCash(cash: number) {
+    this._cash += cash;
   }
 
+  spendCash(cash: number) {
+    this._cash -= cash;
+  }
 
-  buyGun(n:number){
-    if((guns[n]?.cashToUnlock||Infinity)<=this._cash){
-      this._availableGuns[n] = true
-      this._cash -= guns[n]?.cashToUnlock || 0
+  get availableGuns() {
+    return this._availableGuns;
+  }
 
+  get ready() {
+    return this._ready;
+  }
+
+  setReady(b: boolean) {
+    this._ready = b;
+  }
+
+  buyGun(n: number) {
+    if ((guns[n]?.cashToUnlock || Infinity) <= this._cash) {
+      this._availableGuns[n] = true;
+      this._cash -= guns[n]?.cashToUnlock || 0;
     }
   }
-  
+
   private _moving(size: Coords) {
     const origPosition: Coords = { x: this._x, y: this._y };
 
@@ -129,18 +143,12 @@ export class Player {
               !this._move.down
             ) {
               this._x = this._x - this._speed / Math.SQRT2;
-              if (
-                !allowedAreaForPlayers(this._x, this._y)
-              ) {
+              if (!allowedAreaForPlayers(this._x, this._y)) {
                 this._x = origPosition.x;
-               
               }
               this._y = this._y - this._speed / Math.SQRT2;
-              if (
-                !allowedAreaForPlayers(this._x, this._y)
-              ) {
+              if (!allowedAreaForPlayers(this._x, this._y)) {
                 this._y = origPosition.y;
-                
               }
             } else {
               if (
@@ -151,18 +159,12 @@ export class Player {
                 !this._move.down
               ) {
                 this._x = this._x + this._speed / Math.SQRT2;
-                if (
-                  !allowedAreaForPlayers(this._x, this._y)
-                ) {
+                if (!allowedAreaForPlayers(this._x, this._y)) {
                   this._x = origPosition.x;
-                 
                 }
                 this._y = this._y - this._speed / Math.SQRT2;
-                if (
-                  !allowedAreaForPlayers(this._x, this._y)
-                ) {
+                if (!allowedAreaForPlayers(this._x, this._y)) {
                   this._y = origPosition.y;
-                 
                 }
               } else {
                 if (
@@ -173,24 +175,12 @@ export class Player {
                   this._move.down
                 ) {
                   this._x = this._x - this._speed / Math.SQRT2;
-                  if (
-                    !allowedAreaForPlayers(
-                      this._x,
-                      this._y
-                    )
-                  ) {
+                  if (!allowedAreaForPlayers(this._x, this._y)) {
                     this._x = origPosition.x;
-                    
                   }
                   this._y = this._y + this._speed / Math.SQRT2;
-                  if (
-                    !allowedAreaForPlayers(
-                      this._x,
-                      this._y
-                    )
-                  ) {
+                  if (!allowedAreaForPlayers(this._x, this._y)) {
                     this._y = origPosition.y;
-                    
                   }
                 } else {
                   if (
@@ -201,24 +191,12 @@ export class Player {
                     this._move.down
                   ) {
                     this._x = this._x + this._speed / Math.SQRT2;
-                    if (
-                      !allowedAreaForPlayers(
-                        this._x,
-                        this._y
-                      )
-                    ) {
+                    if (!allowedAreaForPlayers(this._x, this._y)) {
                       this._x = origPosition.x;
-                     
                     }
                     this._y = this._y + this._speed / Math.SQRT2;
-                    if (
-                      !allowedAreaForPlayers(
-                        this._x,
-                        this._y
-                      )
-                    ) {
+                    if (!allowedAreaForPlayers(this._x, this._y)) {
                       this._y = origPosition.y;
-                     
                     }
                   } else {
                   }

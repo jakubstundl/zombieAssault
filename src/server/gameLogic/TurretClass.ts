@@ -1,5 +1,6 @@
 import { coordsDistance } from "../../constants/functions";
-import { playgroundSize, turrets } from "../../constants/gameConstants";
+import { playgroundSize} from "../../constants/gameConstants";
+import { turrets } from "../../constants/objectProperties/turretProperties";
 import type { BulletData, Coords } from "../../constants/schemas";
 import { pg } from "../trpc/router/gameMovementRouter";
 

@@ -12,19 +12,16 @@ import type {
 } from "../constants/schemas";
 import { moveStateInitValues } from "../constants/schemas";
 import React from "react";
-import {
-  bulletImgURL,
-  monsters,
-  guns,
-  turretImgURL,
-} from "../constants/gameConstants";
+import { bulletImgURL, turretImgURL } from "../constants/gameConstants";
 import router from "next/router";
+import { guns } from "../constants/objectProperties/gunProperties";
+import { monsters } from "../constants/objectProperties/monsterProperties";
 
 const Game: NextPage = () => {
   const clientName = trpc.auth.getClientName.useQuery();
-  const playgroundData = trpc.gameMovement.getPlaygroundData.useQuery();
-  const getAvailableGuns = trpc.gameMovement.getAvailableGuns.useMutation();
-  const buyGun = trpc.gameMovement.buyGun.useMutation();
+  const playgroundData = trpc.gameManagement.getPlaygroundData.useQuery();
+  const getAvailableGuns = trpc.gameManagement.getAvailableGuns.useMutation();
+  const buyGun = trpc.gameManagement.buyGun.useMutation();
 
   const [minimapSize, setMinimapSize] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>();
@@ -32,18 +29,20 @@ const Game: NextPage = () => {
   const [availableGuns, setAvailableGuns] = useState<boolean[]>(
     getAvailableGuns.data || []
   );
+  const [centerPanel, setCenterPanel] = useState<string | undefined>("Level 1");
   const [enemyCounter, setEnemyCounter] = useState<string>();
   const [moveState, setMoveState] = useState<MoveState>(moveStateInitValues);
   const [clientMoveDirection, setClientMoveDirection] =
     useState<MoveState>(moveStateInitValues);
   const [autoShooting, setAutoShooting] = useState<boolean>(false);
   const moveController = trpc.gameMovement.clientMovementData.useMutation();
-  const turretController = trpc.gameMovement.setTurret.useMutation();
-  const pauseSignal = trpc.gameMovement.pauseTheGame.useMutation();
-  const restartSignal = trpc.gameMovement.restartTheGame.useMutation();
+  const turretController = trpc.gameManagement.setTurret.useMutation();
+  const pauseSignal = trpc.gameManagement.pauseTheGame.useMutation();
+  const restartSignal = trpc.gameManagement.restartTheGame.useMutation();
   const rotationController = trpc.gameMovement.clientRotationData.useMutation();
-  const bulletController = trpc.gameMovement.clientFire.useMutation();
-  const autoShootingController = trpc.gameMovement.autoFireToggle.useMutation();
+  const bulletController = trpc.shootingRouter.clientFire.useMutation();
+  const autoShootingController =
+    trpc.shootingRouter.autoFireToggle.useMutation();
   const pause = () => {
     pauseSignal.mutate();
   };
@@ -79,8 +78,7 @@ const Game: NextPage = () => {
 
   trpc.gameMovement.moveAll.useSubscription(undefined, {
     onData(stateData) {
-      setIsPaused(stateData.pause);
-      setEnemyCounter(stateData.enemiesToKill);
+      setEnemyCounter(stateData.enemiesToSpawn);
       setAllPlayersPositions(stateData.players);
       setAllBulletsPositions(stateData.bullets);
       setAllEnemiesPositions(stateData.enemies);
@@ -100,6 +98,12 @@ const Game: NextPage = () => {
       }
     },
   });
+  trpc.gameManagement.centerPanel.useSubscription(undefined, {
+    onData(data) {
+      setCenterPanel(data);
+    },
+  });
+
   const [allPlayersRotations, setAllPlayersRotations] = useState<{
     [k: string]: number;
   }>();
@@ -330,11 +334,9 @@ const Game: NextPage = () => {
           <div className="absolute left-0 top-0 w-[10%] bg-black text-white">
             Paused(p): {isPaused ? "ON" : "OFF"}
             <br></br>
-            Automat(q): {autoShooting ? "ON" : "OFF"}
-            <br></br>
             HP:{" "}
             {allPlayersPositions && clientName.data ? (
-              Math.ceil(allPlayersPositions[clientName.data]?.hp || 0)
+              allPlayersPositions[clientName.data]?.hp
             ) : (
               <></>
             )}
@@ -377,7 +379,6 @@ const Game: NextPage = () => {
                 })}{" "}
             <br></br>
             Enemies to spawn: {enemyCounter} <br></br>
-            
           </div>
           {/*Minimap*/}
           <div className="absolute bottom-[10px] right-[10px] box-border aspect-square w-[10%] border border-2 border-black bg-white">
@@ -431,19 +432,35 @@ const Game: NextPage = () => {
             </div>
           </div>
           {/*Gun display*/}
-          <div className="absolute bottom-[10px] left-[10px] box-border aspect-square w-[10%] border border-2  border-black bg-white text-center">
-            {guns[gun]?.type}
-            {availableGuns[gun] ? "" : `
+          <div className="absolute bottom-[10px] left-[10px]  box-border aspect-square w-[10%]  border border-2  border-black bg-white text-center text-[80%]">
+            {`${guns[gun]?.type} (${guns[gun]?.auto ? "automat" : "manual"})`}
+            <br />
+            {availableGuns[gun] ? (
+              <br />
+            ) : (
+              `
             Press b to unlock for ${guns[gun]?.cashToUnlock}$
-            `}
-            <div
-              className="h-[80%] w-full bg-contain bg-center bg-no-repeat"
-              style={{
-                opacity: availableGuns[gun] ? 1 : 0.2,
-                backgroundImage: guns[gun]?.url,
-              }}
-            ></div>{" "}
-            q {"<--- --->"} e
+            `
+            )}
+            <div className="box-border h-[80%] w-full px-[20px]">
+              <div
+                className="box-border h-full h-full bg-contain bg-center bg-no-repeat"
+                style={{
+                  opacity: availableGuns[gun] ? 1 : 0.4,
+                  backgroundImage: guns[gun]?.url,
+                }}
+              ></div>{" "}
+            </div>
+            ◄ q ◄ ► e ►
+          </div>
+          {/*Center screen info*/}
+          <div
+            className="absolute flex h-screen w-screen items-center justify-center"
+            style={{ display: (centerPanel?.length || 0) > 0 ? "" : "none" }}
+          >
+            <div className="pointer-events-none box-border  flex h-[50%] w-[50%] items-center justify-center bg-[#171717]">
+              <p className="text-[100px] text-red-700">{centerPanel}</p>
+            </div>
           </div>
         </div>
       </main>

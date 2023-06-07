@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { HandleKeyMovement } from "../constants/schemas";
-import { numberOfGuns } from "../constants/gameConstants";
+import { numberOfGuns } from "../constants/objectProperties/gunProperties";
+
 
 export const handleKey = (
   e: React.KeyboardEvent<HTMLElement>,

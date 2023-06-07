@@ -65,7 +65,7 @@ export class Enemy {
   
 
   pathfinder() {
-    console.log("Pathfinder has been called");
+   // console.log("Pathfinder has been called");
 
     this._targetPoints = [];
     this._tileCounter = 0;
@@ -80,7 +80,7 @@ export class Enemy {
       Math.floor(this.coords.y / (playgroundSize.y / playgroundTiles.y)),
       0
     );
-    console.log("Tiles", tx0, ty0);
+   // console.log("Tiles", tx0, ty0);
 
     easystar.findPath(
       tx0,
@@ -179,7 +179,7 @@ export class Enemy {
         this._targetPoints = [];
         this._targetPoints[0] = pg?.players.get(playerToChase)
           ?.coords as Coords;
-        if (this._distanceFromTheTarget < distanceToDoDmg) {
+        if (this._distanceFromTheTarget < distanceToDoDmg && !this._slowDown) {
           pg?.players.get(playerToChase)?.takeDmg(this._dmg);
         }
       } else {

@@ -65,7 +65,7 @@ export type PlayersState = {
   [k: string]: {
     x: number;
     y: number;
-    hp: number;
+    hp: string;
     cash: number;
   };
 };
@@ -94,8 +94,7 @@ export type MoveAllObservable = {
   bullets: BulletsState | undefined;
   enemies: EnemiesState | undefined;
   turrets: TurretsState | undefined;
-  pause: boolean | undefined;
-  enemiesToKill: string | undefined;
+  enemiesToSpawn: string | undefined;
 };
 
 export type BulletData = {
@@ -129,7 +128,7 @@ export type EnemyContructor = {
 
 export type MonsterProperties = {
   type: string;
-  monterIndex: number;
+  monsterIndex: number;
   url: string;
   imgSize: number;
   rotationOffset?: number;

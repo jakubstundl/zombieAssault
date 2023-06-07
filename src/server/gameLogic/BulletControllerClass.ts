@@ -1,6 +1,6 @@
 import type { BulletData } from "../../constants/schemas";
 import { pg } from "../trpc/router/gameMovementRouter";
-import { guns } from "../../constants/gameConstants";
+import { guns } from "../../constants/objectProperties/gunProperties";
 
 export class BulletController {
   interval: NodeJS.Timer | undefined;

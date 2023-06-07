@@ -2,38 +2,22 @@ import { Events } from "../../../constants/events";
 import type {
   ClientMovement,
   MoveAllObservable,
-  BulletData,
   RotationData,
 } from "../../../constants/schemas";
 import { clientMovementSchema } from "../../../constants/schemas";
 import { observable } from "@trpc/server/observable";
 import { router, protectedProcedure } from "../trpc";
 import { Playground } from "../../gameLogic/PlaygroundClass";
-import { z } from "zod";
+
 import { BulletController } from "../../gameLogic/BulletControllerClass";
-import { turrets } from "../../../constants/gameConstants";
+import { z } from "zod";
+import { bulletController } from "./shootingRouter";
+
 
 export const pg: Playground | null = new Playground();
-const bulletController = new Map<string, BulletController>();
+
 
 export const gameMovement = router({
-  getPlaygroundData: protectedProcedure.query(() => {
-    return { imgSize: pg?.imgSize, mapSize: pg?.size };
-  }),
-
-  getAvailableGuns: protectedProcedure.mutation(({ctx}) => {
-    if(ctx.session.user.name){
-       console.log(pg.players.get(ctx.session.user.name)?.availableGuns);       
-      return pg.players.get(ctx.session.user.name)?.availableGuns;
-       }
-  }),
-
-  buyGun: protectedProcedure.input(z.number()).mutation(({ctx, input}) => {
-    if(ctx.session.user.name && input){
-      pg.players.get(ctx.session.user.name)?.buyGun(input);
-      return pg.players.get(ctx.session.user.name)?.availableGuns;
-       }
-  }),
 
   clientMovementData: protectedProcedure
     .input(clientMovementSchema)
@@ -46,18 +30,19 @@ export const gameMovement = router({
       pg?.setInput(movementData);
     }),
 
-  moveAll: protectedProcedure.subscription(() => {
+  moveAll: protectedProcedure.subscription(({ctx}) => {
     return observable<MoveAllObservable>((emit) => {
-      setInterval(() => {
-        emit.next({
-          players: pg?.getPlayersState(),
-          bullets: pg?.getBulletsState(),
-          enemies: pg?.getEnemiesState(),
-          turrets: pg?.getTurretsState(),
-          pause: pg.isPaused,
-          enemiesToKill: pg.enemiesToKill,
-        });      
-      }, 20);
+      function onMove(data: MoveAllObservable) {
+        emit.next(data);
+      }
+      ctx.ee.on(Events.MOVEMENT_DATA, onMove);
+
+      return () => {
+        ctx.ee.on(Events.MOVEMENT_DATA, onMove);
+      };
+    
+       
+        
     });
   }),
 
@@ -97,58 +82,7 @@ export const gameMovement = router({
       }
     }),
 
-  clientFire: protectedProcedure
-    .input(z.number())
-    .mutation(async ({ ctx, input }) => {
-      if (ctx.session?.user?.name) {
-        const bulletData: BulletData = {
-          player: ctx.session?.user?.name,
-          gun: input,
-        };
-        console.log(input);
-        
-        bulletController.get(bulletData.player)?.fire(bulletData);
-      }
-    }),
 
-  autoFireToggle: protectedProcedure
-    .input(z.object({ autoShooting: z.boolean(), gun: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      if (ctx.session?.user?.name) {
-        const bulletData: BulletData = {
-          player: ctx.session?.user?.name,
-          gun: input.gun,
-        };
-        if (input.autoShooting) {
-          bulletController.get(bulletData.player)?.fireOn(bulletData);
-        } else {
-          bulletController.get(bulletData.player)?.fireOff();
-        }
-      }
-    }),
 
-  pauseTheGame: protectedProcedure.mutation(async () => {
-    pg?.pause();
-  }),
-  restartTheGame: protectedProcedure.mutation(async () => {
-    // pg= null;
-    // pg = new Playground();
-  }),
-   setTurret: protectedProcedure.mutation(async ({ ctx }) => {
-    const player = ctx.session?.user?.name
-    if (player) {
-      if( (pg.players.get(player)?.cash||0) >= (turrets[0]?.cashToBuild||Infinity)){
-        pg.players.get(player)?.spendCash((turrets[0]?.cashToBuild||0))
-        pg.setTurret(player)
-      }
-      
-    }
-  }),
-
-  addPlayer: protectedProcedure.mutation(async ({ ctx }) => {
-    if (ctx.session?.user?.name) {
-      pg.setNewPlayer(ctx.session?.user?.name)
-      
-    }
-  }),  
+  
 });

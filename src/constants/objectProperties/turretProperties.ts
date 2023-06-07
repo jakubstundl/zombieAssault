@@ -5,12 +5,14 @@ export const turrets:TurretProperties[] = [
       type:"Big turret",
       turretIndex:0,
       cashToBuild:1000,
-      damage: 1,
+      damage: 100,
       piercing: 1,
       cadence: 20,
-      bulletSpeed: 24,
+      bulletSpeed: 50,
       bulletRange: 60,
-      turretRange: 1000,
+      turretRange:500,
     },  
     
   ];
+
+  export const numberOfturrets = Object.keys(turrets).length;

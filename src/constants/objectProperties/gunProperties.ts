@@ -71,3 +71,9 @@ export const guns: GunProperties[] = [
     bulletRange: 100,
   },
 ];
+
+export const numberOfGuns = Object.keys(guns).length;
+
+export const availableGunsInit:boolean[] = new Array<boolean>(numberOfGuns)
+availableGunsInit.fill(false)
+availableGunsInit[0] = true;

@@ -10,7 +10,7 @@ import { prisma } from "../db/client";
 import { getSession } from "next-auth/react";
 import type { NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/adapters/node-http";
 
-const ee = new EventEmitter();
+export const ee = new EventEmitter();
 
 export const createContext = async (
   opts?:
