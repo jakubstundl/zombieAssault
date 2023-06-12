@@ -23,7 +23,7 @@ export const monsters:MonsterProperties[] = [
       imgSize:150,
       damage: 20,
       colision: 60,
-      hp: 6,
+      hp: 50,
       speed: playerMovingSpeed*0.8,
       cash:3
     },
@@ -34,7 +34,7 @@ export const monsters:MonsterProperties[] = [
       imgSize:150,
       damage: 50,
       colision: 60,
-      hp: 12,
+      hp: 200,
       speed: playerMovingSpeed*0.6,
       cash:2
     },
@@ -57,7 +57,7 @@ export const monsters:MonsterProperties[] = [
       imgSize:300,
       damage: 100,
       colision: 120,
-      hp: 50,
+      hp: 1000,
       speed: playerMovingSpeed*0.4,
       rotationOffset : Math.PI /2,
       cash:5

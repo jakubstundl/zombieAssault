@@ -8,16 +8,36 @@ import { basicZombie, greenZombie } from "../objectProperties/monsterProperties"
 export const level3 = new Map<string, string | number | [number, Coords][]>();
 
 const enemies: [number, Coords][] = [
-...pushEnemies(greenZombie, 5, rightdown),
-...pushEnemies(greenZombie, 5, downright),
-...pushEnemies(greenZombie, 5, rightdown),
-...pushEnemies(greenZombie, 5, downright),
-...pushEnemies(greenZombie, 5, rightdown),
-...pushEnemies(greenZombie, 5, downright),
-...pushEnemies(greenZombie, 5, rightdown),
-...pushEnemies(greenZombie, 5, downright),
-...pushEnemies(greenZombie, 5, rightdown),
-...pushEnemies(greenZombie, 5, downright),
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, rightdown),
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, downright),
+...pushEnemies(basicZombie, 2, downright),
+
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, rightdown),
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, downright),
+...pushEnemies(basicZombie, 2, downright),
+
+
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, rightdown),
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, downright),
+...pushEnemies(basicZombie, 2, downright),
+
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, rightdown),
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, downright),
+...pushEnemies(basicZombie, 2, downright),
+
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, rightdown),
+...pushEnemies(basicZombie, 2, rightdown),
+...pushEnemies(greenZombie, 2, downright),
+...pushEnemies(basicZombie, 2, downright),
 ];
 
 

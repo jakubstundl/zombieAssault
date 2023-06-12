@@ -6,15 +6,15 @@ import {
 import { basicZombie, greenZombie } from "../objectProperties/monsterProperties";
 
 
-export const level4 = new Map<string, string | number | [number, Coords][]>();
+export const level5 = new Map<string, string | number | [number, Coords][]>();
 
 const enemies: [number, Coords][] = [
-...pushEnemies(basicZombie, 5000, "random" ),
+...pushEnemies(greenZombie, 200, "random" ),
 
 ];
 
 
 
-level4.set("totalEnemies", enemies.length);
-level4.set("spawnAtTheTimeEnemies", 200);
-level4.set("enemies", enemies);
+level5.set("totalEnemies", enemies.length);
+level5.set("spawnAtTheTimeEnemies", 50);
+level5.set("enemies", enemies);

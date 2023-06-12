@@ -9,15 +9,15 @@ export const level1 = new Map<string, string | number | [number, Coords][]>();
 
 const enemies: [number, Coords][] = [
 ...pushEnemies(basicZombie, 5, rightdown),
-/* ...pushEnemies(basicZombie, 5, downright),
-...pushEnemies(basicZombie, 5, rightdown),
 ...pushEnemies(basicZombie, 5, downright),
 ...pushEnemies(basicZombie, 5, rightdown),
 ...pushEnemies(basicZombie, 5, downright),
 ...pushEnemies(basicZombie, 5, rightdown),
 ...pushEnemies(basicZombie, 5, downright),
 ...pushEnemies(basicZombie, 5, rightdown),
-...pushEnemies(basicZombie, 5, downright) ,*/
+...pushEnemies(basicZombie, 5, downright),
+...pushEnemies(basicZombie, 5, rightdown),
+...pushEnemies(basicZombie, 5, downright) ,
 ];
 
 
